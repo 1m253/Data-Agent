@@ -26,6 +26,16 @@ public interface PluginManager {
     List<Plugin> getPluginsByDbType(DbType dbType);
 
     /**
+     * Get all plugins for a specific database type by string code.
+     * Results are ordered by version (newest first).
+     * This method avoids the need to convert string to enum.
+     *
+     * @param dbTypeCode database type code (e.g., "mysql", "MYSQL")
+     * @return list of plugins (empty if none found)
+     */
+    List<Plugin> getPluginsByDbTypeCode(String dbTypeCode);
+
+    /**
      * Get all plugins that support a specific capability.
      *
      * @param capability capability code (e.g., "CONNECTION")

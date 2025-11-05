@@ -2,8 +2,6 @@ package edu.zsc.ai.plugin.manager;
 
 import edu.zsc.ai.plugin.Plugin;
 import edu.zsc.ai.plugin.enums.DbType;
-import edu.zsc.ai.plugin.exception.PluginErrorCode;
-import edu.zsc.ai.plugin.exception.PluginException;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
@@ -82,6 +80,22 @@ public class DefaultPluginManager implements PluginManager {
         return plugins.stream()
             .sorted(Comparator.comparing(Plugin::getVersion).reversed())
             .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Plugin> getPluginsByDbTypeCode(String dbTypeCode) {
+        if (StringUtils.isBlank(dbTypeCode)) {
+            return Collections.emptyList();
+        }
+
+        // Convert string to enum and call the enum-based method
+        try {
+            DbType dbType = DbType.fromCode(dbTypeCode);
+            return getPluginsByDbType(dbType);
+        } catch (IllegalArgumentException e) {
+            // Unknown database type, return empty list
+            return Collections.emptyList();
+        }
     }
 
     @Override
