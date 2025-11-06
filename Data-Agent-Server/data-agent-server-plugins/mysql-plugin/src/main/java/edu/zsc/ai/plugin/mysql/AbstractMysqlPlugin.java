@@ -8,6 +8,7 @@ import edu.zsc.ai.plugin.connection.JdbcConnectionBuilder;
 import edu.zsc.ai.plugin.exception.PluginErrorCode;
 import edu.zsc.ai.plugin.exception.PluginException;
 import edu.zsc.ai.plugin.model.ConnectionConfig;
+import edu.zsc.ai.plugin.model.MavenCoordinates;
 import edu.zsc.ai.plugin.mysql.connection.MysqlJdbcConnectionBuilder;
 
 import java.sql.Connection;
@@ -125,5 +126,43 @@ public abstract class AbstractMysqlPlugin extends AbstractDatabasePlugin impleme
         } catch (java.sql.SQLException e) {
             throw new PluginException("Failed to close database connection: " + e.getMessage(), e);
         }
+    }
+    
+    // ========== Driver Maven Coordinates ==========
+    
+    /**
+     * Get Maven coordinates for MySQL JDBC driver.
+     * Automatically selects the correct artifact based on version:
+     * - MySQL 8.0+ (8.x, 9.x) → com.mysql:mysql-connector-j
+     * - MySQL 5.x and below → mysql:mysql-connector-java
+     *
+     * @param driverVersion driver version (nullable, uses default if null)
+     * @return Maven coordinates for MySQL driver, or null if version not supported
+     */
+    @Override
+    public MavenCoordinates getDriverMavenCoordinates(String driverVersion) {
+        // If no version specified or version >= 8.0, use mysql-connector-j
+        if (driverVersion == null || driverVersion.isEmpty() 
+            || driverVersion.startsWith("8.") || driverVersion.startsWith("9.")) {
+            String version = (driverVersion != null && !driverVersion.isEmpty()) ? driverVersion : "8.0.33";
+            return new MavenCoordinates(
+                "com.mysql",
+                "mysql-connector-j",
+                version
+            );
+        }
+        
+        // Version 2.x - 7.x → use mysql-connector-java
+        char firstChar = driverVersion.charAt(0);
+        if (firstChar >= '2' && firstChar <= '7') {
+            return new MavenCoordinates(
+                "mysql",
+                "mysql-connector-java",
+                driverVersion
+            );
+        }
+        
+        // Unsupported version
+        return null;
     }
 }

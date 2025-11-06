@@ -2,6 +2,7 @@ package edu.zsc.ai.plugin;
 
 import edu.zsc.ai.plugin.enums.DbType;
 import edu.zsc.ai.plugin.enums.PluginType;
+import edu.zsc.ai.plugin.model.MavenCoordinates;
 
 import java.util.Set;
 
@@ -94,5 +95,17 @@ public interface Plugin {
      * @return set of capability identifiers
      */
     Set<String> getSupportedCapabilities();
+    
+    // ========== Driver Maven Coordinates ==========
+    
+    /**
+     * Get Maven coordinates for the JDBC driver.
+     * Plugin determines the appropriate groupId and artifactId based on the version.
+     * Returns null if the plugin does not support the given version or doesn't provide Maven coordinates.
+     *
+     * @param driverVersion driver version (e.g., "8.0.33", "5.1.49"), or null for default version
+     * @return Maven coordinates (groupId, artifactId, version), or null if not available/supported
+     */
+    MavenCoordinates getDriverMavenCoordinates(String driverVersion);
 }
 
