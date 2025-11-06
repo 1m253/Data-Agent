@@ -3,20 +3,15 @@ package edu.zsc.ai.plugin.manager;
 import edu.zsc.ai.plugin.Plugin;
 import edu.zsc.ai.plugin.capability.ConnectionProvider;
 import edu.zsc.ai.plugin.enums.DbType;
-import edu.zsc.ai.plugin.exception.PluginException;
 import edu.zsc.ai.plugin.exception.PluginErrorCode;
+import edu.zsc.ai.plugin.exception.PluginException;
+import edu.zsc.ai.plugin.model.MavenCoordinates;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.ServiceLoader;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-
 /**
  * Plugin Manager
  * Thread-safe static utility class for managing plugins.
@@ -137,6 +132,38 @@ public class PluginManager {
 
         List<Plugin> plugins = pluginsByCapability.get(capability);
         return plugins != null ? List.copyOf(plugins) : List.of();
+    }
+
+    /**
+     * Get plugin by ID.
+     *
+     * @param pluginId plugin ID
+     * @return plugin instance, or null if not found
+     */
+    public static Plugin getPlugin(String pluginId) {
+        if (StringUtils.isBlank(pluginId)) {
+            return null;
+        }
+        return PLUGIN_MAP.get(pluginId);
+    }
+    
+    /**
+     * Get Maven coordinates for a driver version.
+     * Queries each plugin for the database type and returns coordinates from the first plugin that supports the version.
+     *
+     * @param dbType database type
+     * @param driverVersion driver version (nullable)
+     * @return Maven coordinates, or null if no plugin supports the version
+     */
+    public static MavenCoordinates getDriverMavenCoordinates(DbType dbType, String driverVersion) {
+        List<Plugin> plugins = getPluginsByDbType(dbType);
+        for (Plugin plugin : plugins) {
+            MavenCoordinates coords = plugin.getDriverMavenCoordinates(driverVersion);
+            if (coords != null && coords.isComplete()) {
+                return coords;
+            }
+        }
+        return null;
     }
 
     /**
