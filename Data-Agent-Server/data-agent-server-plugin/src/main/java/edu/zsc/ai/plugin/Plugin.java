@@ -104,7 +104,7 @@ public interface Plugin {
      *
      * @param driverVersion driver version (e.g., "8.0.33", "5.1.49"), or null for default version
      * @return Maven coordinates (groupId, artifactId, version)
-     * @throws edu.zsc.ai.plugin.exception.PluginException if the plugin does not support the given version or doesn't provide Maven coordinates
+     * @throws IllegalArgumentException if the plugin does not support the given version or doesn't provide Maven coordinates
      */
     MavenCoordinates getDriverMavenCoordinates(String driverVersion);
 }

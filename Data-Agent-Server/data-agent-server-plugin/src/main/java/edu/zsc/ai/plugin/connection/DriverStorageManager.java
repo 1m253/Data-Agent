@@ -1,8 +1,6 @@
 package edu.zsc.ai.plugin.connection;
 
 import edu.zsc.ai.plugin.enums.DbType;
-import edu.zsc.ai.plugin.exception.PluginErrorCode;
-import edu.zsc.ai.plugin.exception.PluginException;
 import edu.zsc.ai.plugin.model.MavenCoordinates;
 
 import java.io.IOException;
@@ -78,11 +76,11 @@ public final class DriverStorageManager {
      * Ensure storage directory exists, creating it if necessary.
      *
      * @param storageDir storage directory path
-     * @throws PluginException if directory creation fails
+     * @throws RuntimeException if directory creation fails
      */
-    public static void ensureDirectoryExists(Path storageDir) throws PluginException {
+    public static void ensureDirectoryExists(Path storageDir) {
         if (storageDir == null) {
-            throw new PluginException(PluginErrorCode.CONNECTION_FAILED, "Storage directory path is null");
+            throw new IllegalArgumentException("Storage directory path is null");
         }
         
         if (!Files.exists(storageDir)) {
@@ -90,12 +88,10 @@ public final class DriverStorageManager {
                 Files.createDirectories(storageDir);
                 logger.info("Created driver storage directory: " + storageDir);
             } catch (IOException e) {
-                throw new PluginException(PluginErrorCode.CONNECTION_FAILED,
-                    "Failed to create storage directory: " + storageDir, e);
+                throw new RuntimeException("Failed to create storage directory: " + storageDir, e);
             }
         } else if (!Files.isDirectory(storageDir)) {
-            throw new PluginException(PluginErrorCode.CONNECTION_FAILED,
-                "Storage path exists but is not a directory: " + storageDir);
+            throw new RuntimeException("Storage path exists but is not a directory: " + storageDir);
         }
     }
     
@@ -116,24 +112,22 @@ public final class DriverStorageManager {
      * Delete a driver file.
      *
      * @param filePath driver file path
-     * @throws PluginException if deletion fails
+     * @throws RuntimeException if deletion fails
      */
-    public static void deleteDriver(Path filePath) throws PluginException {
+    public static void deleteDriver(Path filePath) {
         if (filePath == null) {
-            throw new PluginException(PluginErrorCode.CONNECTION_FAILED, "File path is null");
+            throw new IllegalArgumentException("File path is null");
         }
         
         if (!Files.exists(filePath)) {
-            throw new PluginException(PluginErrorCode.CONNECTION_FAILED,
-                "Driver file does not exist: " + filePath);
+            throw new IllegalArgumentException("Driver file does not exist: " + filePath);
         }
         
         try {
             Files.delete(filePath);
             logger.info("Deleted driver file: " + filePath);
         } catch (IOException e) {
-            throw new PluginException(PluginErrorCode.CONNECTION_FAILED,
-                "Failed to delete driver file: " + filePath, e);
+            throw new RuntimeException("Failed to delete driver file: " + filePath, e);
         }
     }
 }

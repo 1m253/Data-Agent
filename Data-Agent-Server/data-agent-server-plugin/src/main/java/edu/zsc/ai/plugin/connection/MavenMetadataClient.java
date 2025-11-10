@@ -1,7 +1,5 @@
 package edu.zsc.ai.plugin.connection;
 
-import edu.zsc.ai.plugin.exception.PluginErrorCode;
-import edu.zsc.ai.plugin.exception.PluginException;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -50,14 +48,12 @@ public final class MavenMetadataClient {
      * @param artifactId Maven artifact ID
      * @param mavenRepositoryUrl Maven repository URL (default: Maven Central)
      * @return list of available versions, sorted by version number (newest first)
-     * @throws PluginException if query fails
+     * @throws RuntimeException if query fails
      */
-    public static List<String> queryVersions(String groupId, String artifactId, String mavenRepositoryUrl) 
-            throws PluginException {
+    public static List<String> queryVersions(String groupId, String artifactId, String mavenRepositoryUrl) {
         
         if (groupId == null || groupId.isEmpty() || artifactId == null || artifactId.isEmpty()) {
-            throw new PluginException(PluginErrorCode.CONNECTION_FAILED,
-                "groupId and artifactId are required");
+            throw new IllegalArgumentException("groupId and artifactId are required");
         }
         
         String repoUrl = mavenRepositoryUrl != null && !mavenRepositoryUrl.isEmpty()
@@ -80,7 +76,7 @@ public final class MavenMetadataClient {
             
             int responseCode = connection.getResponseCode();
             if (responseCode != HttpURLConnection.HTTP_OK) {
-                throw new PluginException(PluginErrorCode.CONNECTION_FAILED,
+                throw new RuntimeException(
                     String.format("Failed to query Maven metadata from %s: HTTP %d", metadataUrl, responseCode));
             }
             
@@ -98,7 +94,7 @@ public final class MavenMetadataClient {
             return versions;
             
         } catch (IOException e) {
-            throw new PluginException(PluginErrorCode.CONNECTION_FAILED,
+            throw new RuntimeException(
                 String.format("Failed to query Maven metadata from %s: %s", metadataUrl, e.getMessage()), e);
         } finally {
             if (inputStream != null) {
@@ -120,9 +116,9 @@ public final class MavenMetadataClient {
      * @param groupId Maven group ID
      * @param artifactId Maven artifact ID
      * @return list of available versions
-     * @throws PluginException if query fails
+     * @throws RuntimeException if query fails
      */
-    public static List<String> queryVersions(String groupId, String artifactId) throws PluginException {
+    public static List<String> queryVersions(String groupId, String artifactId) {
         return queryVersions(groupId, artifactId, DriverConstants.MAVEN_CENTRAL_URL);
     }
     
@@ -131,9 +127,9 @@ public final class MavenMetadataClient {
      *
      * @param inputStream input stream containing XML
      * @return list of versions
-     * @throws PluginException if parsing fails
+     * @throws RuntimeException if parsing fails
      */
-    private static List<String> parseVersionsFromMetadata(InputStream inputStream) throws PluginException {
+    private static List<String> parseVersionsFromMetadata(InputStream inputStream) {
         try {
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
             DocumentBuilder builder = factory.newDocumentBuilder();
@@ -154,8 +150,7 @@ public final class MavenMetadataClient {
             return versions;
             
         } catch (ParserConfigurationException | SAXException | IOException e) {
-            throw new PluginException(PluginErrorCode.CONNECTION_FAILED,
-                "Failed to parse Maven metadata XML: " + e.getMessage(), e);
+            throw new RuntimeException("Failed to parse Maven metadata XML: " + e.getMessage(), e);
         }
     }
     

@@ -1,7 +1,5 @@
 package edu.zsc.ai.plugin.connection;
 
-import edu.zsc.ai.plugin.exception.PluginErrorCode;
-import edu.zsc.ai.plugin.exception.PluginException;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -29,28 +27,25 @@ public final class JarFileValidator {
      * Validate that a file is a valid JAR file.
      *
      * @param filePath path to the file to validate
-     * @throws PluginException if validation fails
+     * @throws RuntimeException if validation fails
      */
-    public static void validate(Path filePath) throws PluginException {
+    public static void validate(Path filePath) {
         if (filePath == null) {
-            throw new PluginException(PluginErrorCode.CONNECTION_FAILED, "File path is null");
+            throw new IllegalArgumentException("File path is null");
         }
         
         // Check file exists
         if (!Files.exists(filePath)) {
-            throw new PluginException(PluginErrorCode.CONNECTION_FAILED,
-                "File does not exist: " + filePath);
+            throw new IllegalArgumentException("File does not exist: " + filePath);
         }
         
         // Check file is not empty
         try {
             if (Files.size(filePath) == 0) {
-                throw new PluginException(PluginErrorCode.CONNECTION_FAILED,
-                    "Downloaded file is empty: " + filePath);
+                throw new RuntimeException("Downloaded file is empty: " + filePath);
             }
         } catch (IOException e) {
-            throw new PluginException(PluginErrorCode.CONNECTION_FAILED,
-                "Failed to check file size: " + filePath, e);
+            throw new RuntimeException("Failed to check file size: " + filePath, e);
         }
         
         // Check JAR magic number
@@ -59,16 +54,14 @@ public final class JarFileValidator {
             try (var inputStream = Files.newInputStream(filePath)) {
                 int bytesRead = inputStream.read(header);
                 if (bytesRead != 4) {
-                    throw new PluginException(PluginErrorCode.CONNECTION_FAILED,
-                        "File is too small to be a valid JAR: " + filePath);
+                    throw new RuntimeException("File is too small to be a valid JAR: " + filePath);
                 }
             }
             
             // Verify magic number
             for (int i = 0; i < 4; i++) {
                 if (header[i] != JAR_MAGIC_NUMBER[i]) {
-                    throw new PluginException(PluginErrorCode.CONNECTION_FAILED,
-                        "File does not appear to be a valid JAR file (invalid magic number): " + filePath);
+                    throw new RuntimeException("File does not appear to be a valid JAR file (invalid magic number): " + filePath);
                 }
             }
             
@@ -79,8 +72,7 @@ public final class JarFileValidator {
             }
             
         } catch (IOException e) {
-            throw new PluginException(PluginErrorCode.CONNECTION_FAILED,
-                "Failed to validate JAR file: " + filePath + ". Error: " + e.getMessage(), e);
+            throw new RuntimeException("Failed to validate JAR file: " + filePath + ". Error: " + e.getMessage(), e);
         }
     }
 }

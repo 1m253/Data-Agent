@@ -5,8 +5,6 @@ import edu.zsc.ai.plugin.annotation.CapabilityMarker;
 import edu.zsc.ai.plugin.annotation.PluginInfo;
 import edu.zsc.ai.plugin.enums.DbType;
 import edu.zsc.ai.plugin.enums.PluginType;
-import edu.zsc.ai.plugin.exception.PluginErrorCode;
-import edu.zsc.ai.plugin.exception.PluginException;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -27,13 +25,12 @@ public abstract class AbstractDatabasePlugin implements Plugin {
     /**
      * Constructor that reads and validates plugin metadata from annotation
      *
-     * @throws PluginException if @PluginInfo annotation is missing
+     * @throws IllegalStateException if @PluginInfo annotation is missing
      */
     protected AbstractDatabasePlugin() {
         this.pluginInfo = this.getClass().getAnnotation(PluginInfo.class);
         if (pluginInfo == null) {
-            throw new PluginException(
-                PluginErrorCode.PLUGIN_METADATA_MISSING,
+            throw new IllegalStateException(
                 "Plugin class " + this.getClass().getName() + " must be annotated with @PluginInfo"
             );
         }

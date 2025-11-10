@@ -5,8 +5,6 @@ import edu.zsc.ai.plugin.base.AbstractDatabasePlugin;
 import edu.zsc.ai.plugin.capability.ConnectionProvider;
 import edu.zsc.ai.plugin.connection.DriverLoader;
 import edu.zsc.ai.plugin.connection.JdbcConnectionBuilder;
-import edu.zsc.ai.plugin.exception.PluginErrorCode;
-import edu.zsc.ai.plugin.exception.PluginException;
 import edu.zsc.ai.plugin.model.ConnectionConfig;
 import edu.zsc.ai.plugin.model.MavenCoordinates;
 import edu.zsc.ai.plugin.mysql.connection.MysqlJdbcConnectionBuilder;
@@ -60,7 +58,7 @@ public abstract class AbstractMysqlPlugin extends AbstractDatabasePlugin impleme
     // ========== ConnectionProvider Implementation ==========
 
     @Override
-    public Connection connect(ConnectionConfig config) throws PluginException {
+    public Connection connect(ConnectionConfig config) {
         try {
             // Step 1: Load JDBC driver
             DriverLoader.loadDriver(config, getDriverClassName());
@@ -88,14 +86,14 @@ public abstract class AbstractMysqlPlugin extends AbstractDatabasePlugin impleme
                 config.getDatabase() != null ? config.getDatabase() : "",
                 e.getMessage());
             logger.severe(errorMsg);
-            throw new PluginException(PluginErrorCode.CONNECTION_FAILED, errorMsg, e);
-        } catch (PluginException e) {
-            // Re-throw PluginException as-is
+            throw new RuntimeException(errorMsg, e);
+        } catch (RuntimeException e) {
+            // Re-throw RuntimeException as-is
             throw e;
         } catch (Exception e) {
             String errorMsg = String.format("Unexpected error while connecting to MySQL database: %s", e.getMessage());
             logger.severe(errorMsg);
-            throw new PluginException(PluginErrorCode.CONNECTION_FAILED, errorMsg, e);
+            throw new RuntimeException(errorMsg, e);
         }
     }
 
@@ -115,7 +113,7 @@ public abstract class AbstractMysqlPlugin extends AbstractDatabasePlugin impleme
     }
 
     @Override
-    public void closeConnection(Connection connection) throws PluginException {
+    public void closeConnection(Connection connection) {
         if (connection == null) {
             return;
         }
@@ -124,7 +122,7 @@ public abstract class AbstractMysqlPlugin extends AbstractDatabasePlugin impleme
                 connection.close();
             }
         } catch (java.sql.SQLException e) {
-            throw new PluginException("Failed to close database connection: " + e.getMessage(), e);
+            throw new RuntimeException("Failed to close database connection: " + e.getMessage(), e);
         }
     }
     
@@ -138,7 +136,7 @@ public abstract class AbstractMysqlPlugin extends AbstractDatabasePlugin impleme
      *
      * @param driverVersion driver version (nullable, uses default if null)
      * @return Maven coordinates for MySQL driver
-     * @throws PluginException if version is not supported
+     * @throws IllegalArgumentException if version is not supported
      */
     @Override
     public MavenCoordinates getDriverMavenCoordinates(String driverVersion) {
@@ -164,7 +162,7 @@ public abstract class AbstractMysqlPlugin extends AbstractDatabasePlugin impleme
         }
         
         // Unsupported version - throw exception instead of returning null
-        throw new PluginException(PluginErrorCode.DRIVER_NOT_SUPPORTED,
+        throw new IllegalArgumentException(
                 String.format("Unsupported MySQL driver version: %s. Supported versions: 2.x-7.x, 8.x, 9.x", driverVersion));
     }
 }

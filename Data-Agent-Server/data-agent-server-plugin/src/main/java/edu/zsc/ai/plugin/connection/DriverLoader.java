@@ -1,7 +1,5 @@
 package edu.zsc.ai.plugin.connection;
 
-import edu.zsc.ai.plugin.exception.PluginErrorCode;
-import edu.zsc.ai.plugin.exception.PluginException;
 import edu.zsc.ai.plugin.model.ConnectionConfig;
 
 import java.io.File;
@@ -36,19 +34,19 @@ public final class DriverLoader {
      *
      * @param config connection configuration (must contain driverJarPath)
      * @param driverClassName JDBC driver class name
-     * @throws PluginException if driver loading fails
+     * @throws RuntimeException if driver loading fails
      */
-    public static void loadDriver(ConnectionConfig config, String driverClassName) throws PluginException {
+    public static void loadDriver(ConnectionConfig config, String driverClassName) {
         loadDriverFromJar(config.getDriverJarPath(), driverClassName);
     }
 
     /**
      * Load driver from external JAR file
      */
-    private static void loadDriverFromJar(String driverJarPath, String driverClassName) throws PluginException {
+    private static void loadDriverFromJar(String driverJarPath, String driverClassName) {
         File driverJar = new File(driverJarPath);
         if (!driverJar.exists() || !driverJar.isFile()) {
-            throw new PluginException(PluginErrorCode.CONNECTION_FAILED,
+            throw new IllegalArgumentException(
                 String.format("Driver JAR file not found: %s", driverJarPath));
         }
 
@@ -58,7 +56,7 @@ public final class DriverLoader {
                 URL jarUrl = driverJar.toURI().toURL();
                 return new URLClassLoader(new URL[]{jarUrl}, Thread.currentThread().getContextClassLoader());
             } catch (Exception e) {
-                throw new PluginException(PluginErrorCode.CONNECTION_FAILED,
+                throw new RuntimeException(
                     String.format("Failed to create class loader for driver JAR: %s", driverJarPath), e);
             }
         });
@@ -69,7 +67,7 @@ public final class DriverLoader {
             Driver driver = (Driver) driverClass.getDeclaredConstructor().newInstance();
             DriverManager.registerDriver(new DriverProxy(driver, classLoader));
         } catch (Exception e) {
-            throw new PluginException(PluginErrorCode.CONNECTION_FAILED,
+            throw new RuntimeException(
                 String.format("Failed to load JDBC driver '%s' from %s", driverClassName, driverJarPath), e);
         }
     }
