@@ -1,7 +1,5 @@
 package edu.zsc.ai.plugin.connection;
 
-import edu.zsc.ai.plugin.exception.PluginErrorCode;
-import edu.zsc.ai.plugin.exception.PluginException;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -38,9 +36,9 @@ public final class HttpDownloader {
      *
      * @param url URL to download from
      * @param targetPath target file path
-     * @throws PluginException if download fails
+     * @throws RuntimeException if download fails
      */
-    public static void download(URL url, Path targetPath) throws PluginException {
+    public static void download(URL url, Path targetPath) {
         HttpURLConnection connection = null;
         InputStream inputStream = null;
         
@@ -53,7 +51,7 @@ public final class HttpDownloader {
             
             int responseCode = connection.getResponseCode();
             if (responseCode != HttpURLConnection.HTTP_OK) {
-                throw new PluginException(PluginErrorCode.CONNECTION_FAILED,
+                throw new RuntimeException(
                     String.format("Failed to download file from %s: HTTP %d", url, responseCode));
             }
             
@@ -76,7 +74,7 @@ public final class HttpDownloader {
                 logger.warning("Failed to delete partial file: " + deleteException.getMessage());
             }
             
-            throw new PluginException(PluginErrorCode.CONNECTION_FAILED,
+            throw new RuntimeException(
                 String.format("Failed to download file from %s: %s", url, e.getMessage()), e);
         } finally {
             if (inputStream != null) {

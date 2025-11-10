@@ -1,6 +1,5 @@
 package edu.zsc.ai.plugin.connection;
 
-import edu.zsc.ai.plugin.exception.PluginException;
 import edu.zsc.ai.plugin.model.MavenCoordinates;
 import org.junit.jupiter.api.Test;
 
@@ -14,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class MavenUrlBuilderTest {
     
     @Test
-    void testBuildDownloadUrl_Success() throws PluginException {
+    void testBuildDownloadUrl_Success() {
         MavenCoordinates coordinates = new MavenCoordinates(
             "com.mysql",
             "mysql-connector-j",
@@ -28,7 +27,7 @@ class MavenUrlBuilderTest {
     }
     
     @Test
-    void testBuildDownloadUrl_WithCustomBaseUrl() throws PluginException {
+    void testBuildDownloadUrl_WithCustomBaseUrl() {
         MavenCoordinates coordinates = new MavenCoordinates(
             "com.mysql",
             "mysql-connector-j",
@@ -43,7 +42,7 @@ class MavenUrlBuilderTest {
     }
     
     @Test
-    void testBuildMetadataUrl_Success() throws PluginException {
+    void testBuildMetadataUrl_Success() {
         URL url = MavenUrlBuilder.buildMetadataUrl("com.mysql", "mysql-connector-j");
         
         assertEquals("https://repo1.maven.org/maven2/com/mysql/mysql-connector-j/maven-metadata.xml",
@@ -51,7 +50,7 @@ class MavenUrlBuilderTest {
     }
     
     @Test
-    void testBuildMetadataUrl_WithCustomBaseUrl() throws PluginException {
+    void testBuildMetadataUrl_WithCustomBaseUrl() {
         String customBaseUrl = "https://custom.repo.com/maven2";
         
         URL url = MavenUrlBuilder.buildMetadataUrl("com.mysql", "mysql-connector-j", customBaseUrl);
@@ -62,20 +61,20 @@ class MavenUrlBuilderTest {
     
     @Test
     void testBuildMetadataUrl_EmptyGroupId() {
-        assertThrows(PluginException.class, () -> {
+        assertThrows(IllegalArgumentException.class, () -> {
             MavenUrlBuilder.buildMetadataUrl("", "mysql-connector-j");
         });
     }
     
     @Test
     void testBuildMetadataUrl_EmptyArtifactId() {
-        assertThrows(PluginException.class, () -> {
+        assertThrows(IllegalArgumentException.class, () -> {
             MavenUrlBuilder.buildMetadataUrl("com.mysql", "");
         });
     }
     
     @Test
-    void testBuildDownloadUrl_WithSnapshotVersion() throws PluginException {
+    void testBuildDownloadUrl_WithSnapshotVersion() {
         MavenCoordinates coordinates = new MavenCoordinates(
             "com.mysql",
             "mysql-connector-j",
@@ -89,7 +88,7 @@ class MavenUrlBuilderTest {
     }
     
     @Test
-    void testBuildDownloadUrl_WithBetaVersion() throws PluginException {
+    void testBuildDownloadUrl_WithBetaVersion() {
         MavenCoordinates coordinates = new MavenCoordinates(
             "org.postgresql",
             "postgresql",
@@ -103,7 +102,7 @@ class MavenUrlBuilderTest {
     }
     
     @Test
-    void testBuildDownloadUrl_WithRCVersion() throws PluginException {
+    void testBuildDownloadUrl_WithRCVersion() {
         MavenCoordinates coordinates = new MavenCoordinates(
             "com.example",
             "driver",
@@ -117,7 +116,7 @@ class MavenUrlBuilderTest {
     }
     
     @Test
-    void testBuildDownloadUrl_WithMultipleDotGroupId() throws PluginException {
+    void testBuildDownloadUrl_WithMultipleDotGroupId() {
         // Test groupId with multiple dots
         MavenCoordinates coordinates = new MavenCoordinates(
             "org.springframework.boot",

@@ -3,8 +3,6 @@ package edu.zsc.ai.plugin.manager;
 import edu.zsc.ai.plugin.Plugin;
 import edu.zsc.ai.plugin.capability.ConnectionProvider;
 import edu.zsc.ai.plugin.enums.DbType;
-import edu.zsc.ai.plugin.exception.PluginErrorCode;
-import edu.zsc.ai.plugin.exception.PluginException;
 import edu.zsc.ai.plugin.model.MavenCoordinates;
 import org.apache.commons.lang3.StringUtils;
 
@@ -105,35 +103,30 @@ public class DefaultPluginManager implements IPluginManager {
     @Override
     public Plugin selectFirstPluginByDbType(String dbTypeCode) {
         if (StringUtils.isBlank(dbTypeCode)) {
-            throw new PluginException(PluginErrorCode.PLUGIN_NOT_FOUND,
-                    "Database type code cannot be empty");
+            throw new IllegalArgumentException("Database type code cannot be empty");
         }
 
         List<Plugin> plugins = pluginsByDbType.get(dbTypeCode.toLowerCase());
         if (plugins == null || plugins.isEmpty()) {
-            throw new PluginException(PluginErrorCode.PLUGIN_NOT_FOUND,
-                    "No plugin available for database type: " + dbTypeCode);
+            throw new IllegalArgumentException("No plugin available for database type: " + dbTypeCode);
         }
 
         // Return first plugin (sort by version, newest first)
         List<Plugin> sortedPlugins = PluginVersionSorter.sortByVersionDesc(plugins);
         return sortedPlugins.stream()
                 .findFirst()
-                .orElseThrow(() -> new PluginException(PluginErrorCode.PLUGIN_NOT_FOUND,
-                        "No plugin available for database type: " + dbTypeCode));
+                .orElseThrow(() -> new IllegalArgumentException("No plugin available for database type: " + dbTypeCode));
     }
 
     @Override
     public Plugin selectPluginByDbTypeAndVersion(String dbTypeCode, String databaseVersion) {
         if (StringUtils.isBlank(dbTypeCode)) {
-            throw new PluginException(PluginErrorCode.PLUGIN_NOT_FOUND,
-                    "Database type code cannot be empty");
+            throw new IllegalArgumentException("Database type code cannot be empty");
         }
 
         List<Plugin> plugins = pluginsByDbType.get(dbTypeCode.toLowerCase());
         if (plugins == null || plugins.isEmpty()) {
-            throw new PluginException(PluginErrorCode.PLUGIN_NOT_FOUND,
-                    "No plugin available for database type: " + dbTypeCode);
+            throw new IllegalArgumentException("No plugin available for database type: " + dbTypeCode);
         }
 
         return PluginVersionSelector.select(plugins, databaseVersion);
@@ -144,22 +137,19 @@ public class DefaultPluginManager implements IPluginManager {
     @Override
     public ConnectionProvider selectConnectionProviderByDbType(String dbTypeCode) {
         if (StringUtils.isBlank(dbTypeCode)) {
-            throw new PluginException(PluginErrorCode.PLUGIN_NOT_FOUND,
-                    "Database type code cannot be empty");
+            throw new IllegalArgumentException("Database type code cannot be empty");
         }
 
         List<Plugin> plugins = pluginsByDbType.get(dbTypeCode.toLowerCase());
         if (plugins == null || plugins.isEmpty()) {
-            throw new PluginException(PluginErrorCode.PLUGIN_NOT_FOUND,
-                    "No plugin available for database type: " + dbTypeCode);
+            throw new IllegalArgumentException("No plugin available for database type: " + dbTypeCode);
         }
 
         // Return first plugin (sort by version, newest first)
         List<Plugin> sortedPlugins = PluginVersionSorter.sortByVersionDesc(plugins);
         Plugin plugin = sortedPlugins.stream()
                 .findFirst()
-                .orElseThrow(() -> new PluginException(PluginErrorCode.PLUGIN_NOT_FOUND,
-                        "No plugin available for database type: " + dbTypeCode));
+                .orElseThrow(() -> new IllegalArgumentException("No plugin available for database type: " + dbTypeCode));
 
         return (ConnectionProvider) plugin;
     }
@@ -167,14 +157,12 @@ public class DefaultPluginManager implements IPluginManager {
     @Override
     public ConnectionProvider selectConnectionProviderByPluginId(String pluginId) {
         if (StringUtils.isBlank(pluginId)) {
-            throw new PluginException(PluginErrorCode.PLUGIN_NOT_FOUND,
-                    "Plugin Id cannot be empty");
+            throw new IllegalArgumentException("Plugin Id cannot be empty");
         }
 
         Plugin plugin = pluginMap.get(pluginId);
         if (plugin == null) {
-            throw new PluginException(PluginErrorCode.PLUGIN_NOT_FOUND,
-                    "No plugin found with ID: " + pluginId);
+            throw new IllegalArgumentException("No plugin found with ID: " + pluginId);
         }
         return (ConnectionProvider) plugin;
     }
@@ -184,14 +172,12 @@ public class DefaultPluginManager implements IPluginManager {
     @Override
     public MavenCoordinates findDriverMavenCoordinates(DbType dbType, String driverVersion) {
         if (dbType == null) {
-            throw new PluginException(PluginErrorCode.PLUGIN_NOT_FOUND,
-                    "Database type cannot be null");
+            throw new IllegalArgumentException("Database type cannot be null");
         }
 
         List<Plugin> plugins = pluginsByDbType.get(dbType.getCode().toLowerCase());
         if (plugins == null || plugins.isEmpty()) {
-            throw new PluginException(PluginErrorCode.PLUGIN_NOT_FOUND,
-                    "No plugin available for database type: " + dbType.getCode());
+            throw new IllegalArgumentException("No plugin available for database type: " + dbType.getCode());
         }
 
         // Sort by version (newest first) and try each plugin
@@ -201,7 +187,7 @@ public class DefaultPluginManager implements IPluginManager {
             try {
                 MavenCoordinates coords = plugin.getDriverMavenCoordinates(driverVersion);
                 return coords;
-            } catch (PluginException e) {
+            } catch (RuntimeException e) {
                 // Continue to next plugin if this one doesn't support the version
                 logger.fine(String.format("Plugin %s does not support driver version %s: %s", 
                         plugin.getPluginId(), driverVersion, e.getMessage()));
@@ -209,7 +195,7 @@ public class DefaultPluginManager implements IPluginManager {
         }
 
         // No plugin supports the driver version
-        throw new PluginException(PluginErrorCode.DRIVER_NOT_SUPPORTED,
+        throw new IllegalArgumentException(
                 String.format("No plugin found that supports driver version %s for database type: %s", 
                         driverVersion != null ? driverVersion : "default", dbType.getCode()));
     }

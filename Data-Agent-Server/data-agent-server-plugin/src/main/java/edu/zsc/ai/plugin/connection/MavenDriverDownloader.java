@@ -1,8 +1,6 @@
 package edu.zsc.ai.plugin.connection;
 
 import edu.zsc.ai.plugin.enums.DbType;
-import edu.zsc.ai.plugin.exception.PluginErrorCode;
-import edu.zsc.ai.plugin.exception.PluginException;
 import edu.zsc.ai.plugin.model.MavenCoordinates;
 
 import java.nio.file.Path;
@@ -32,13 +30,13 @@ public final class MavenDriverDownloader {
      * @param baseStorageDir base storage directory (default: ./drivers)
      * @param mavenRepositoryUrl Maven repository URL (default: Maven Central)
      * @return path to downloaded driver file
-     * @throws PluginException if download fails
+     * @throws RuntimeException if download fails
      */
     public static Path downloadDriver(
             MavenCoordinates coordinates,
             DbType dbType,
             String baseStorageDir,
-            String mavenRepositoryUrl) throws PluginException {
+            String mavenRepositoryUrl) {
         
         // Step 1: Determine storage directory and file path
         Path storageDir = DriverStorageManager.getStorageDirectory(baseStorageDir, dbType);
@@ -64,7 +62,7 @@ public final class MavenDriverDownloader {
         // Step 5: Download file via HTTP
         try {
             HttpDownloader.download(downloadUrl, driverFilePath);
-        } catch (PluginException e) {
+        } catch (RuntimeException e) {
             // Clean up partial file if download failed
             try {
                 if (java.nio.file.Files.exists(driverFilePath)) {
@@ -79,15 +77,14 @@ public final class MavenDriverDownloader {
         // Step 6: Validate downloaded JAR file
         try {
             JarFileValidator.validate(driverFilePath);
-        } catch (PluginException e) {
+        } catch (RuntimeException e) {
             // Clean up invalid file
             try {
                 java.nio.file.Files.delete(driverFilePath);
             } catch (java.io.IOException deleteException) {
                 logger.warning("Failed to delete invalid file: " + deleteException.getMessage());
             }
-            throw new PluginException(PluginErrorCode.CONNECTION_FAILED,
-                "Downloaded file is invalid or corrupted: " + e.getMessage(), e);
+            throw new RuntimeException("Downloaded file is invalid or corrupted: " + e.getMessage(), e);
         }
         
         logger.info("Successfully downloaded and validated driver: " + driverFilePath);
@@ -100,9 +97,9 @@ public final class MavenDriverDownloader {
      * @param coordinates Maven coordinates
      * @param dbType database type
      * @return path to downloaded driver file
-     * @throws PluginException if download fails
+     * @throws RuntimeException if download fails
      */
-    public static Path downloadDriver(MavenCoordinates coordinates, DbType dbType) throws PluginException {
+    public static Path downloadDriver(MavenCoordinates coordinates, DbType dbType) {
         return downloadDriver(coordinates, dbType, null, null);
     }
 }

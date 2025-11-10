@@ -2,7 +2,6 @@ package edu.zsc.ai.plugin.capability;
 
 import edu.zsc.ai.plugin.annotation.CapabilityMarker;
 import edu.zsc.ai.plugin.enums.CapabilityEnum;
-import edu.zsc.ai.plugin.exception.PluginException;
 import edu.zsc.ai.plugin.model.command.*;
 
 /**
@@ -20,7 +19,7 @@ public interface CommandExecutor<T extends CommandRequest, R extends CommandResu
      *
      * @param command the command to execute
      * @return the execution result
-     * @throws PluginException if execution fails
+     * @throws RuntimeException if execution fails
      */
-    R executeCommand(T command) throws PluginException;
+    R executeCommand(T command);
 }

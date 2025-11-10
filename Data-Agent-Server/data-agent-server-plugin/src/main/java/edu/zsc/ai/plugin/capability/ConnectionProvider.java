@@ -2,7 +2,6 @@ package edu.zsc.ai.plugin.capability;
 
 import edu.zsc.ai.plugin.annotation.CapabilityMarker;
 import edu.zsc.ai.plugin.enums.CapabilityEnum;
-import edu.zsc.ai.plugin.exception.PluginException;
 import edu.zsc.ai.plugin.model.ConnectionConfig;
 import java.sql.*;
 
@@ -18,9 +17,9 @@ public interface ConnectionProvider {
      *
      * @param config connection configuration
      * @return database connection
-     * @throws PluginException if connection fails
+     * @throws RuntimeException if connection fails
      */
-    Connection connect(ConnectionConfig config) throws PluginException;
+    Connection connect(ConnectionConfig config);
     
     /**
      * Test whether a connection can be established with the given configuration.
@@ -35,9 +34,9 @@ public interface ConnectionProvider {
      * Close a database connection and release associated resources.
      *
      * @param connection the connection to close
-     * @throws PluginException if closing the connection fails
+     * @throws RuntimeException if closing the connection fails
      */
-    void closeConnection(Connection connection) throws PluginException;
+    void closeConnection(Connection connection);
 
     /**
      * Get database metadata from a connection.
@@ -45,13 +44,13 @@ public interface ConnectionProvider {
      *
      * @param connection the database connection
      * @return DatabaseMetaData instance
-     * @throws PluginException if getting metadata fails
+     * @throws RuntimeException if getting metadata fails
      */
-    default DatabaseMetaData getMetaData(Connection connection) throws PluginException {
+    default DatabaseMetaData getMetaData(Connection connection) {
         try {
             return connection.getMetaData();
         } catch (SQLException e) {
-            throw new PluginException("Failed to get database metadata: " + e.getMessage(), e);
+            throw new RuntimeException("Failed to get database metadata: " + e.getMessage(), e);
         }
     }
 
@@ -61,14 +60,14 @@ public interface ConnectionProvider {
      *
      * @param connection the database connection
      * @return database product version string
-     * @throws PluginException if getting version fails
+     * @throws RuntimeException if getting version fails
      */
-    default String getDatabaseProductVersion(Connection connection) throws PluginException {
+    default String getDatabaseProductVersion(Connection connection) {
         try {
             DatabaseMetaData metaData = getMetaData(connection);
             return metaData.getDatabaseProductVersion();
         } catch (SQLException e) {
-            throw new PluginException("Failed to get database product version: " + e.getMessage(), e);
+            throw new RuntimeException("Failed to get database product version: " + e.getMessage(), e);
         }
     }
 
@@ -78,16 +77,16 @@ public interface ConnectionProvider {
      *
      * @param connection the database connection
      * @return formatted database info string (e.g., "MySQL (ver. 8.0.0)")
-     * @throws PluginException if getting info fails
+     * @throws RuntimeException if getting info fails
      */
-    default String getDbmsInfo(Connection connection) throws PluginException {
+    default String getDbmsInfo(Connection connection) {
         try {
             DatabaseMetaData metaData = getMetaData(connection);
             return String.format("%s (ver. %s)",
                     metaData.getDatabaseProductName(),
                     metaData.getDatabaseProductVersion());
         } catch (SQLException e) {
-            throw new PluginException("Failed to get database info: " + e.getMessage(), e);
+            throw new RuntimeException("Failed to get database info: " + e.getMessage(), e);
         }
     }
 
@@ -97,9 +96,9 @@ public interface ConnectionProvider {
      *
      * @param connection the database connection
      * @return formatted driver info string (e.g., "MySQL Connector/J (ver. 8.0.0, JDBC4.2)")
-     * @throws PluginException if getting info fails
+     * @throws RuntimeException if getting info fails
      */
-    default String getDriverInfo(Connection connection) throws PluginException {
+    default String getDriverInfo(Connection connection) {
         try {
             DatabaseMetaData metaData = getMetaData(connection);
             return String.format("%s (ver. %s, JDBC%d.%d)",
@@ -108,7 +107,7 @@ public interface ConnectionProvider {
                     metaData.getJDBCMajorVersion(),
                     metaData.getJDBCMinorVersion());
         } catch (SQLException e) {
-            throw new PluginException("Failed to get driver info: " + e.getMessage(), e);
+            throw new RuntimeException("Failed to get driver info: " + e.getMessage(), e);
         }
     }
 }

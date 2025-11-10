@@ -1,6 +1,5 @@
 package edu.zsc.ai.plugin.connection;
 
-import edu.zsc.ai.plugin.exception.PluginException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -24,7 +23,7 @@ class JarFileValidatorTest {
     private static final byte[] JAR_MAGIC = {0x50, 0x4B, 0x03, 0x04};
     
     @Test
-    void testValidate_ValidJarFile() throws IOException, PluginException {
+    void testValidate_ValidJarFile() throws IOException {
         // Create a minimal valid JAR file
         Path jarFile = tempDir.resolve("test.jar");
         createMinimalJarFile(jarFile);
@@ -53,7 +52,7 @@ class JarFileValidatorTest {
     void testValidate_FileDoesNotExist() {
         Path nonExistentFile = tempDir.resolve("nonexistent.jar");
         
-        assertThrows(PluginException.class, () -> {
+        assertThrows(IllegalArgumentException.class, () -> {
             JarFileValidator.validate(nonExistentFile);
         });
     }
@@ -63,7 +62,7 @@ class JarFileValidatorTest {
         Path emptyFile = tempDir.resolve("empty.jar");
         Files.createFile(emptyFile);
         
-        assertThrows(PluginException.class, () -> {
+        assertThrows(RuntimeException.class, () -> {
             JarFileValidator.validate(emptyFile);
         });
     }
@@ -73,7 +72,7 @@ class JarFileValidatorTest {
         Path invalidFile = tempDir.resolve("invalid.jar");
         Files.write(invalidFile, new byte[]{0x00, 0x01, 0x02, 0x03});
         
-        assertThrows(PluginException.class, () -> {
+        assertThrows(RuntimeException.class, () -> {
             JarFileValidator.validate(invalidFile);
         });
     }
@@ -83,14 +82,14 @@ class JarFileValidatorTest {
         Path smallFile = tempDir.resolve("small.jar");
         Files.write(smallFile, new byte[]{0x50, 0x4B}); // Only 2 bytes
         
-        assertThrows(PluginException.class, () -> {
+        assertThrows(RuntimeException.class, () -> {
             JarFileValidator.validate(smallFile);
         });
     }
     
     @Test
     void testValidate_NullPath() {
-        assertThrows(PluginException.class, () -> {
+        assertThrows(IllegalArgumentException.class, () -> {
             JarFileValidator.validate(null);
         });
     }

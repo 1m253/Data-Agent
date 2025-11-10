@@ -32,7 +32,7 @@ public interface IPluginManager {
      *
      * @param dbTypeCode database type code (e.g., "mysql", "MYSQL")
      * @return selected plugin (first in sorted list)
-     * @throws edu.zsc.ai.plugin.exception.PluginException if no plugin available for the database type
+     * @throws IllegalArgumentException if no plugin available for the database type
      */
     Plugin selectFirstPluginByDbType(String dbTypeCode);
 
@@ -44,7 +44,7 @@ public interface IPluginManager {
      * @param dbTypeCode      database type code (e.g., "mysql", "MYSQL")
      * @param databaseVersion actual database version from connection (e.g., "8.0.33")
      * @return selected plugin that best matches the database version
-     * @throws edu.zsc.ai.plugin.exception.PluginException if no plugin available for the database type
+     * @throws IllegalArgumentException if no plugin available for the database type
      */
     Plugin selectPluginByDbTypeAndVersion(String dbTypeCode, String databaseVersion);
 
@@ -57,7 +57,7 @@ public interface IPluginManager {
      *
      * @param dbTypeCode database type code (e.g., "mysql", "MYSQL")
      * @return ConnectionProvider instance
-     * @throws edu.zsc.ai.plugin.exception.PluginException if no plugin with ConnectionProvider capability found
+     * @throws IllegalArgumentException if no plugin with ConnectionProvider capability found
      */
     ConnectionProvider selectConnectionProviderByDbType(String dbTypeCode);
 
@@ -66,7 +66,7 @@ public interface IPluginManager {
      *
      * @param pluginId plugin ID
      * @return ConnectionProvider instance
-     * @throws edu.zsc.ai.plugin.exception.PluginException if plugin not found or doesn't implement ConnectionProvider
+     * @throws IllegalArgumentException if plugin not found or doesn't implement ConnectionProvider
      */
     ConnectionProvider selectConnectionProviderByPluginId(String pluginId);
 
@@ -79,7 +79,7 @@ public interface IPluginManager {
      * @param dbType database type
      * @param driverVersion driver version (nullable)
      * @return Maven coordinates
-     * @throws edu.zsc.ai.plugin.exception.PluginException if no plugin supports the version or database type not found
+     * @throws IllegalArgumentException if no plugin supports the version or database type not found
      */
     MavenCoordinates findDriverMavenCoordinates(DbType dbType, String driverVersion);
 }

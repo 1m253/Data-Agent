@@ -1,7 +1,6 @@
 package edu.zsc.ai.plugin.connection;
 
 import edu.zsc.ai.plugin.enums.DbType;
-import edu.zsc.ai.plugin.exception.PluginException;
 import edu.zsc.ai.plugin.model.MavenCoordinates;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -48,7 +47,7 @@ class DriverStorageManagerTest {
     }
     
     @Test
-    void testEnsureDirectoryExists_CreatesDirectory() throws PluginException {
+    void testEnsureDirectoryExists_CreatesDirectory() {
         Path newDir = tempDir.resolve("TestDB");
         
         assertFalse(Files.exists(newDir));
@@ -60,7 +59,7 @@ class DriverStorageManagerTest {
     }
     
     @Test
-    void testEnsureDirectoryExists_ExistingDirectory() throws PluginException, IOException {
+    void testEnsureDirectoryExists_ExistingDirectory() throws IOException {
         Path existingDir = tempDir.resolve("ExistingDir");
         Files.createDirectory(existingDir);
         
@@ -77,7 +76,7 @@ class DriverStorageManagerTest {
         Path file = tempDir.resolve("file.txt");
         Files.createFile(file);
         
-        assertThrows(PluginException.class, () -> {
+        assertThrows(RuntimeException.class, () -> {
             DriverStorageManager.ensureDirectoryExists(file);
         });
     }
@@ -103,7 +102,7 @@ class DriverStorageManagerTest {
     }
     
     @Test
-    void testDeleteDriver_Success() throws IOException, PluginException {
+    void testDeleteDriver_Success() throws IOException {
         Path driverFile = tempDir.resolve("driver.jar");
         Files.createFile(driverFile);
         
@@ -118,14 +117,14 @@ class DriverStorageManagerTest {
     void testDeleteDriver_FileDoesNotExist() {
         Path driverFile = tempDir.resolve("nonexistent.jar");
         
-        assertThrows(PluginException.class, () -> {
+        assertThrows(IllegalArgumentException.class, () -> {
             DriverStorageManager.deleteDriver(driverFile);
         });
     }
     
     @Test
     void testDeleteDriver_NullPath() {
-        assertThrows(PluginException.class, () -> {
+        assertThrows(IllegalArgumentException.class, () -> {
             DriverStorageManager.deleteDriver(null);
         });
     }

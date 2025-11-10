@@ -43,7 +43,7 @@ class DriverServiceImplTest {
     
     @Test
     void testListAvailableDrivers_UnknownDatabaseType() {
-        assertThrows(BusinessException.class, () -> {
+        assertThrows(IllegalArgumentException.class, () -> {
             driverService.listAvailableDrivers("UnknownDB");
         });
     }

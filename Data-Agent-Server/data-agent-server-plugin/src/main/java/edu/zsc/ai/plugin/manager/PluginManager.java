@@ -43,7 +43,7 @@ public final class PluginManager {
      *
      * @param dbTypeCode database type code (e.g., "mysql", "MYSQL")
      * @return selected plugin (first in sorted list)
-     * @throws edu.zsc.ai.plugin.exception.PluginException if no plugin available for the database type
+     * @throws IllegalArgumentException if no plugin available for the database type
      */
     public static Plugin selectFirstPluginByDbType(String dbTypeCode) {
         return INSTANCE.selectFirstPluginByDbType(dbTypeCode);
@@ -57,7 +57,7 @@ public final class PluginManager {
      * @param dbTypeCode      database type code (e.g., "mysql", "MYSQL")
      * @param databaseVersion actual database version from connection (e.g., "8.0.33")
      * @return selected plugin that best matches the database version
-     * @throws edu.zsc.ai.plugin.exception.PluginException if no plugin available for the database type
+     * @throws IllegalArgumentException if no plugin available for the database type
      */
     public static Plugin selectPluginByDbTypeAndVersion(String dbTypeCode, String databaseVersion) {
         return INSTANCE.selectPluginByDbTypeAndVersion(dbTypeCode, databaseVersion);
@@ -72,7 +72,7 @@ public final class PluginManager {
      *
      * @param dbTypeCode database type code (e.g., "mysql", "MYSQL")
      * @return ConnectionProvider instance
-     * @throws edu.zsc.ai.plugin.exception.PluginException if no plugin with ConnectionProvider capability found
+     * @throws IllegalArgumentException if no plugin with ConnectionProvider capability found
      */
     public static ConnectionProvider selectConnectionProviderByDbType(String dbTypeCode) {
         return INSTANCE.selectConnectionProviderByDbType(dbTypeCode);
@@ -83,7 +83,7 @@ public final class PluginManager {
      *
      * @param pluginId plugin ID
      * @return ConnectionProvider instance
-     * @throws edu.zsc.ai.plugin.exception.PluginException if plugin not found or doesn't implement ConnectionProvider
+     * @throws IllegalArgumentException if plugin not found or doesn't implement ConnectionProvider
      */
     public static ConnectionProvider selectConnectionProviderByPluginId(String pluginId) {
         return INSTANCE.selectConnectionProviderByPluginId(pluginId);
