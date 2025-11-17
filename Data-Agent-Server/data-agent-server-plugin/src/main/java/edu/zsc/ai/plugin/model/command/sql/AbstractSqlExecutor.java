@@ -1,16 +1,25 @@
 package edu.zsc.ai.plugin.model.command.sql;
 
-import edu.zsc.ai.plugin.capability.CommandExecutor;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import edu.zsc.ai.plugin.capability.CommandExecutor;
+import edu.zsc.ai.plugin.value.JdbcValueContext;
+import edu.zsc.ai.plugin.value.JdbcValueContextFactory;
+import edu.zsc.ai.plugin.value.ValueProcessor;
 
 /**
  * Abstract SQL executor that provides common SQL execution logic.
  * Uses ValueProcessor for database-specific type conversions.
  *
- * <p>Inspired by Chat2DB's design, this class separates SQL execution logic
- * from type handling logic, making it easier to extend and test.
  *
  * <p><b>Note:</b> This executor does NOT close the connection. The caller is
  * responsible for managing the connection lifecycle.
@@ -19,120 +28,216 @@ import java.util.List;
  */
 public abstract class AbstractSqlExecutor implements CommandExecutor<SqlCommandRequest, SqlCommandResult> {
 
+    private static final Logger log = LoggerFactory.getLogger(AbstractSqlExecutor.class);
+
     /**
-     * Extract value from ResultSet at the specified column.
-     *
-     * @param resultSet the ResultSet to extract from
-     * @param columnIndex the column index (1-based)
-     * @param sqlType the SQL type from java.sql.Types
-     * @return the extracted value
-     * @throws SQLException if value extraction fails
+     * Cached value processor instance (lazy initialization).
      */
-    protected abstract Object extractValue(ResultSet resultSet, int columnIndex, int sqlType) throws SQLException;
+    private ValueProcessor valueProcessor;
+
+    /**
+     * Create the value processor for this database type.
+     * Subclasses must implement this method to provide their database-specific value processor.
+     * This method is called only once, and the result is cached.
+     *
+     * @return the value processor instance
+     */
+    protected abstract ValueProcessor createValueProcessor();
+
+    /**
+     * Get the value processor for this database type.
+     * Uses lazy initialization with caching to avoid creating multiple instances.
+     *
+     * @return the cached value processor
+     */
+    protected final ValueProcessor getValueProcessor() {
+        if (valueProcessor == null) {
+            valueProcessor = createValueProcessor();
+        }
+        return valueProcessor;
+    }
 
     @Override
     public SqlCommandResult executeCommand(SqlCommandRequest command) {
         Connection connection = command.getConnection();
-        SqlCommandResult result = new SqlCommandResult();
-        result.setSuccess(true);
-        result.setOriginalSql(command.getOriginalSql());
-        result.setExecutedSql(command.getExecuteSql());
-
+        SqlCommandResult result = createInitialResult(command);
+        
         boolean originalAutoCommit = true;
 
         try {
-            // 保存原始 autoCommit 状态
-            originalAutoCommit = connection.getAutoCommit();
-
+            // Only get and modify autoCommit if transaction is needed
             if (command.isNeedTransaction()) {
-                connection.setAutoCommit(false);
+                originalAutoCommit = connection.getAutoCommit();
+                disableAutoCommitIfNeeded(connection, command);
             }
-
-            try (Statement statement = connection.createStatement()) {
-                String sql = command.getExecuteSql();
-                long start = System.currentTimeMillis();
-                boolean isQuery = statement.execute(sql);
-                result.setExecutionTime(System.currentTimeMillis() - start);
-
-                result.setQuery(isQuery);
-                if (!isQuery) {
-                    // DML 操作
-                    int updateCount = statement.getUpdateCount();
-                    result.setAffectedRows(updateCount);
-                } else {
-                    // 查询操作
-                    processQueryResult(statement, result);
-                }
-
-                // 提交事务
-                if (command.isNeedTransaction()) {
-                    connection.commit();
-                }
-            }
-
+            
+            executeSqlStatement(connection, command, result);
+            commitTransactionIfNeeded(connection, command);
             return result;
 
         } catch (SQLException e) {
-            // 回滚事务
-            if (command.isNeedTransaction()) {
-                try {
-                    if (!connection.isClosed()) {
-                        connection.rollback();
-                    }
-                } catch (SQLException rollbackEx) {
-                    // 记录回滚失败,但不影响原始异常
-                    e.addSuppressed(rollbackEx);
-                }
-            }
-
-            result.setSuccess(false);
-            result.setErrorMessage(
-                    e.getClass().getSimpleName() + ": " + (e.getMessage() != null ? e.getMessage() : "Unknown error"));
+            handleSqlException(connection, command, result, e);
             return result;
 
         } finally {
-            // 恢复原始 autoCommit 状态
+            // Only restore autoCommit if transaction was used
             if (command.isNeedTransaction()) {
-                try {
-                    if (!connection.isClosed()) {
-                        connection.setAutoCommit(originalAutoCommit);
-                    }
-                } catch (SQLException e) {
-                    // 记录但不抛出异常
-                    System.err.println("Failed to restore autoCommit: " + e.getMessage());
-                }
+                restoreAutoCommit(connection, command, originalAutoCommit);
             }
         }
     }
 
     /**
-     * 处理查询结果
+     * Create initial result object with basic information
+     */
+    private SqlCommandResult createInitialResult(SqlCommandRequest command) {
+        SqlCommandResult result = new SqlCommandResult();
+        result.setSuccess(true);
+        result.setOriginalSql(command.getOriginalSql());
+        result.setExecutedSql(command.getExecuteSql());
+        return result;
+    }
+
+    /**
+     * Disable autoCommit if transaction is needed.
+     * Subclasses can override this method to customize transaction handling
+     * for databases that don't support transactions or have special requirements.
      *
-     * @param statement SQL 语句
-     * @param result 结果对象
-     * @throws SQLException SQL 异常
+     * @param connection the database connection
+     * @param command the SQL command request
+     * @throws SQLException if unable to set autoCommit
+     */
+    protected void disableAutoCommitIfNeeded(Connection connection, SqlCommandRequest command) throws SQLException {
+        if (command.isNeedTransaction()) {
+            connection.setAutoCommit(false);
+        }
+    }
+
+    /**
+     * Execute SQL statement and populate result
+     */
+    private void executeSqlStatement(Connection connection, SqlCommandRequest command, SqlCommandResult result)
+            throws SQLException {
+        try (Statement statement = connection.createStatement()) {
+            String sql = command.getExecuteSql();
+            long start = System.currentTimeMillis();
+            boolean isQuery = statement.execute(sql);
+            result.setExecutionTime(System.currentTimeMillis() - start);
+
+            result.setQuery(isQuery);
+            if (isQuery) {
+                processQueryResult(statement, result);
+            } else {
+                processDmlResult(statement, result);
+            }
+        }
+    }
+
+    /**
+     * Process DML operation result
+     */
+    private void processDmlResult(Statement statement, SqlCommandResult result) throws SQLException {
+        int updateCount = statement.getUpdateCount();
+        result.setAffectedRows(updateCount);
+    }
+
+    /**
+     * Commit transaction if needed.
+     * Subclasses can override this method to customize commit behavior
+     * for databases that don't support transactions.
+     *
+     * @param connection the database connection
+     * @param command the SQL command request
+     * @throws SQLException if unable to commit
+     */
+    protected void commitTransactionIfNeeded(Connection connection, SqlCommandRequest command) throws SQLException {
+        if (command.isNeedTransaction()) {
+            connection.commit();
+        }
+    }
+
+    /**
+     * Handle SQL exception and rollback transaction if needed
+     */
+    private void handleSqlException(Connection connection, SqlCommandRequest command, SqlCommandResult result,
+            SQLException e) {
+        rollbackTransactionIfNeeded(connection, command, e);
+        result.setSuccess(false);
+        result.setErrorMessage(
+                e.getClass().getSimpleName() + ": " + (e.getMessage() != null ? e.getMessage() : "Unknown error"));
+    }
+
+    /**
+     * Rollback transaction if needed.
+     * Subclasses can override this method to customize rollback behavior
+     * for databases that don't support transactions.
+     *
+     * @param connection the database connection
+     * @param command the SQL command request
+     * @param e the original SQLException
+     */
+    protected void rollbackTransactionIfNeeded(Connection connection, SqlCommandRequest command, SQLException e) {
+        if (command.isNeedTransaction()) {
+            try {
+                if (!connection.isClosed()) {
+                    connection.rollback();
+                }
+            } catch (SQLException rollbackEx) {
+                e.addSuppressed(rollbackEx);
+            }
+        }
+    }
+
+    /**
+     * Restore original autoCommit state.
+     * Subclasses can override this method to customize autoCommit restoration
+     * for databases that don't support transactions.
+     *
+     * @param connection the database connection
+     * @param command the SQL command request
+     * @param originalAutoCommit the original autoCommit state to restore
+     */
+    protected void restoreAutoCommit(Connection connection, SqlCommandRequest command, boolean originalAutoCommit) {
+        if (command.isNeedTransaction()) {
+            try {
+                if (!connection.isClosed()) {
+                    connection.setAutoCommit(originalAutoCommit);
+                }
+            } catch (SQLException e) {
+                log.warn("Failed to restore autoCommit: {}", e.getMessage());
+            }
+        }
+    }
+
+    /**
+     * Process query result
+     *
+     * @param statement SQL statement
+     * @param result result object
+     * @throws SQLException SQL exception
      */
     private void processQueryResult(Statement statement, SqlCommandResult result) throws SQLException {
         List<String> headers = new ArrayList<>();
+        ValueProcessor processor = getValueProcessor();
 
         try (ResultSet resultSet = statement.getResultSet()) {
             ResultSetMetaData metaData = resultSet.getMetaData();
             int columnCount = metaData.getColumnCount();
 
-            // 获取列名 (统一使用 1-based 索引)
+            // Get column names (use 1-based index consistently)
             for (int i = 1; i <= columnCount; i++) {
                 String header = metaData.getColumnName(i);
                 headers.add(header);
             }
 
-            // 获取数据行
+            // Get data rows
             List<List<Object>> rows = new ArrayList<>();
             while (resultSet.next()) {
                 List<Object> row = new ArrayList<>();
                 for (int i = 1; i <= columnCount; i++) {
-                    String columnTypeName = metaData.getColumnTypeName(i);
-                    int sqlType = metaData.getColumnType(i);
-                    Object value = extractValue(resultSet, i, sqlType);
+                    // Build context from metadata using factory
+                    JdbcValueContext context = JdbcValueContextFactory.fromMetaData(resultSet, metaData, i);
+                    Object value = processor.getJdbcValue(context);
                     row.add(value);
                 }
                 rows.add(row);

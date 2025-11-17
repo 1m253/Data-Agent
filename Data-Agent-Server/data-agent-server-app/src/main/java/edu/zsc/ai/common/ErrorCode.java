@@ -4,195 +4,241 @@ import lombok.Getter;
 
 /**
  * 自定义错误码
+ * 使用国际化 key 作为消息
  *
- * @author Data-Agent Team
+ * @author hhz
  */
 @Getter
 public enum ErrorCode {
 
-    SUCCESS(0, "ok"),
-    PARAMS_ERROR(40000, "请求参数错误"),
-    NOT_LOGIN_ERROR(40100, "未登录"),
-    NO_AUTH_ERROR(40101, "无权限"),
-    NOT_FOUND_ERROR(40400, "请求数据不存在"),
-    FORBIDDEN_ERROR(40300, "禁止访问"),
-    SYSTEM_ERROR(50000, "系统内部异常"),
-    OPERATION_ERROR(50001, "操作失败"),
-
-    // ==================== 数据库连接相关 (50100-50199) ====================
-
+    // ==================== Common Response (0-99) ====================
+    
     /**
-     * 数据库连接失败
+     * Operation successful
      */
-    DB_CONNECTION_ERROR(50100, "数据库连接失败"),
-
+    SUCCESS(0, "common.success"),
+    
+    // ==================== Client Errors (40000-49999) ====================
+    
     /**
-     * 数据库连接超时
+     * Request parameters error
      */
-    DB_CONNECTION_TIMEOUT(50101, "数据库连接超时"),
-
+    PARAMS_ERROR(40000, "error.params"),
+    
     /**
-     * 数据库连接不存在
+     * User not logged in
      */
-    DB_CONNECTION_NOT_FOUND(50102, "数据库连接不存在"),
-
+    NOT_LOGIN_ERROR(40100, "error.not.login"),
+    
     /**
-     * 数据库连接已存在
+     * No permission
      */
-    DB_CONNECTION_ALREADY_EXISTS(50103, "数据库连接已存在"),
-
+    NO_AUTH_ERROR(40101, "error.no.auth"),
+    
     /**
-     * 数据库连接配置错误
+     * Resource not found
      */
-    DB_CONNECTION_CONFIG_ERROR(50104, "数据库连接配置错误"),
-
-    // ==================== 驱动相关 (50200-50299) ====================
-
+    NOT_FOUND_ERROR(40400, "error.not.found"),
+    
     /**
-     * 驱动文件不存在
+     * Access forbidden
      */
-    DRIVER_NOT_FOUND(50200, "驱动文件不存在"),
-
+    FORBIDDEN_ERROR(40300, "error.forbidden"),
+    
+    // ==================== Server Errors (50000-50099) ====================
+    
     /**
-     * 驱动加载失败
+     * System internal error
      */
-    DRIVER_LOAD_ERROR(50201, "驱动加载失败"),
-
+    SYSTEM_ERROR(50000, "error.system"),
+    
     /**
-     * 驱动下载失败
+     * Operation failed
      */
-    DRIVER_DOWNLOAD_ERROR(50202, "驱动下载失败"),
+    OPERATION_ERROR(50001, "error.operation"),
+
+    // ==================== Database Connection (50100-50199) ====================
 
     /**
-     * 驱动版本不支持
+     * Database connection failed
      */
-    DRIVER_VERSION_NOT_SUPPORTED(50203, "驱动版本不支持"),
+    DB_CONNECTION_ERROR(50100, "error.db.connection"),
 
     /**
-     * 驱动文件损坏
+     * Database connection timeout
      */
-    DRIVER_FILE_CORRUPTED(50204, "驱动文件损坏"),
-
-    // ==================== SQL 执行相关 (50300-50399) ====================
+    DB_CONNECTION_TIMEOUT(50101, "error.db.connection.timeout"),
 
     /**
-     * SQL 语法错误
+     * Database connection not found
      */
-    SQL_SYNTAX_ERROR(50300, "SQL 语法错误"),
+    DB_CONNECTION_NOT_FOUND(50102, "error.db.connection.not.found"),
 
     /**
-     * SQL 执行失败
+     * Database connection already exists
      */
-    SQL_EXECUTION_ERROR(50301, "SQL 执行失败"),
+    DB_CONNECTION_ALREADY_EXISTS(50103, "error.db.connection.already.exists"),
 
     /**
-     * SQL 执行超时
+     * Database connection configuration error
      */
-    SQL_TIMEOUT_ERROR(50302, "SQL 执行超时"),
+    DB_CONNECTION_CONFIG_ERROR(50104, "error.db.connection.config"),
+
+    // ==================== Driver (50200-50299) ====================
 
     /**
-     * 事务提交失败
+     * Driver file not found
      */
-    TRANSACTION_COMMIT_ERROR(50303, "事务提交失败"),
+    DRIVER_NOT_FOUND(50200, "error.driver.not.found"),
 
     /**
-     * 事务回滚失败
+     * Driver loading failed
      */
-    TRANSACTION_ROLLBACK_ERROR(50304, "事务回滚失败"),
-
-    // ==================== 插件相关 (50400-50499) ====================
+    DRIVER_LOAD_ERROR(50201, "error.driver.load"),
 
     /**
-     * 插件不存在
+     * Driver download failed
      */
-    PLUGIN_NOT_FOUND(50400, "插件不存在"),
+    DRIVER_DOWNLOAD_ERROR(50202, "error.driver.download"),
 
     /**
-     * 插件加载失败
+     * Driver version not supported
      */
-    PLUGIN_LOAD_ERROR(50401, "插件加载失败"),
+    DRIVER_VERSION_NOT_SUPPORTED(50203, "error.driver.version.not.supported"),
 
     /**
-     * 插件不支持该功能
+     * Driver file corrupted
      */
-    PLUGIN_NOT_SUPPORT(50402, "插件不支持该功能"),
+    DRIVER_FILE_CORRUPTED(50204, "error.driver.file.corrupted"),
+
+    // ==================== SQL Execution (50300-50399) ====================
 
     /**
-     * 插件初始化失败
+     * SQL syntax error
      */
-    PLUGIN_INIT_ERROR(50403, "插件初始化失败"),
-
-    // ==================== 文件操作相关 (50500-50599) ====================
+    SQL_SYNTAX_ERROR(50300, "error.sql.syntax"),
 
     /**
-     * 文件不存在
+     * SQL execution failed
      */
-    FILE_NOT_FOUND(50500, "文件不存在"),
+    SQL_EXECUTION_ERROR(50301, "error.sql.execution"),
 
     /**
-     * 文件读取失败
+     * SQL execution timeout
      */
-    FILE_READ_ERROR(50501, "文件读取失败"),
+    SQL_TIMEOUT_ERROR(50302, "error.sql.timeout"),
 
     /**
-     * 文件写入失败
+     * Transaction commit failed
      */
-    FILE_WRITE_ERROR(50502, "文件写入失败"),
+    TRANSACTION_COMMIT_ERROR(50303, "error.transaction.commit"),
 
     /**
-     * 文件删除失败
+     * Transaction rollback failed
      */
-    FILE_DELETE_ERROR(50503, "文件删除失败"),
+    TRANSACTION_ROLLBACK_ERROR(50304, "error.transaction.rollback"),
+
+    // ==================== Plugin (50400-50499) ====================
 
     /**
-     * 文件格式不支持
+     * Plugin not found
      */
-    FILE_FORMAT_NOT_SUPPORTED(50504, "文件格式不支持"),
+    PLUGIN_NOT_FOUND(50400, "error.plugin.not.found"),
 
     /**
-     * 文件大小超出限制
+     * Plugin loading failed
      */
-    FILE_SIZE_EXCEEDED(50505, "文件大小超出限制"),
-
-    // ==================== 数据验证相关 (50600-50699) ====================
+    PLUGIN_LOAD_ERROR(50401, "error.plugin.load"),
 
     /**
-     * 数据验证失败
+     * Plugin does not support this feature
      */
-    VALIDATION_ERROR(50600, "数据验证失败"),
+    PLUGIN_NOT_SUPPORT(50402, "error.plugin.not.support"),
 
     /**
-     * 必填字段为空
+     * Plugin initialization failed
      */
-    REQUIRED_FIELD_EMPTY(50601, "必填字段为空"),
+    PLUGIN_INIT_ERROR(50403, "error.plugin.init"),
+
+    // ==================== File Operation (50500-50599) ====================
 
     /**
-     * 字段格式错误
+     * File not found
      */
-    FIELD_FORMAT_ERROR(50602, "字段格式错误"),
+    FILE_NOT_FOUND(50500, "error.file.not.found"),
 
     /**
-     * 字段长度超出限制
+     * File reading failed
      */
-    FIELD_LENGTH_EXCEEDED(50603, "字段长度超出限制"),
+    FILE_READ_ERROR(50501, "error.file.read"),
 
     /**
-     * 字段值超出范围
+     * File writing failed
      */
-    FIELD_VALUE_OUT_OF_RANGE(50604, "字段值超出范围");
+    FILE_WRITE_ERROR(50502, "error.file.write"),
 
     /**
-     * 状态码
+     * File deletion failed
+     */
+    FILE_DELETE_ERROR(50503, "error.file.delete"),
+
+    /**
+     * File format not supported
+     */
+    FILE_FORMAT_NOT_SUPPORTED(50504, "error.file.format.not.supported"),
+
+    /**
+     * File size exceeded limit
+     */
+    FILE_SIZE_EXCEEDED(50505, "error.file.size.exceeded"),
+
+    // ==================== Data Validation (50600-50699) ====================
+
+    /**
+     * Data validation failed
+     */
+    VALIDATION_ERROR(50600, "error.validation"),
+
+    /**
+     * Required field is empty
+     */
+    REQUIRED_FIELD_EMPTY(50601, "error.required.field.empty"),
+
+    /**
+     * Field format error
+     */
+    FIELD_FORMAT_ERROR(50602, "error.field.format"),
+
+    /**
+     * Field length exceeded limit
+     */
+    FIELD_LENGTH_EXCEEDED(50603, "error.field.length.exceeded"),
+
+    /**
+     * Field value out of range
+     */
+    FIELD_VALUE_OUT_OF_RANGE(50604, "error.field.value.out.of.range");
+
+    /**
+     * Status code
      */
     private final int code;
 
     /**
-     * 信息
+     * I18n message key
      */
-    private final String message;
+    private final String messageKey;
 
-    ErrorCode(int code, String message) {
+    ErrorCode(int code, String messageKey) {
         this.code = code;
-        this.message = message;
+        this.messageKey = messageKey;
+    }
+
+    /**
+     * Get i18n message key
+     * Compatible with old code using getMessage()
+     */
+    public String getMessage() {
+        return messageKey;
     }
 }
