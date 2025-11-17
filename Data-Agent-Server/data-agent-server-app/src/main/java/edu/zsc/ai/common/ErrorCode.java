@@ -11,13 +11,50 @@ import lombok.Getter;
 @Getter
 public enum ErrorCode {
 
-    SUCCESS(0, "error.success"),
+    // ==================== Common Response (0-99) ====================
+    
+    /**
+     * Operation successful
+     */
+    SUCCESS(0, "common.success"),
+    
+    // ==================== Client Errors (40000-49999) ====================
+    
+    /**
+     * Request parameters error
+     */
     PARAMS_ERROR(40000, "error.params"),
+    
+    /**
+     * User not logged in
+     */
     NOT_LOGIN_ERROR(40100, "error.not.login"),
+    
+    /**
+     * No permission
+     */
     NO_AUTH_ERROR(40101, "error.no.auth"),
+    
+    /**
+     * Resource not found
+     */
     NOT_FOUND_ERROR(40400, "error.not.found"),
+    
+    /**
+     * Access forbidden
+     */
     FORBIDDEN_ERROR(40300, "error.forbidden"),
+    
+    // ==================== Server Errors (50000-50099) ====================
+    
+    /**
+     * System internal error
+     */
     SYSTEM_ERROR(50000, "error.system"),
+    
+    /**
+     * Operation failed
+     */
     OPERATION_ERROR(50001, "error.operation"),
 
     // ==================== Database Connection (50100-50199) ====================

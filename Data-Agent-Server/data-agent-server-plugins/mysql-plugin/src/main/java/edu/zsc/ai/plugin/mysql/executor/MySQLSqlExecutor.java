@@ -15,10 +15,8 @@ import edu.zsc.ai.plugin.value.ValueProcessor;
  */
 public class MySQLSqlExecutor extends AbstractSqlExecutor {
 
-    private final MySQLValueProcessor valueProcessor = new MySQLValueProcessor();
-
     @Override
-    protected ValueProcessor getValueProcessor() {
-        return valueProcessor;
+    protected ValueProcessor createValueProcessor() {
+        return new MySQLValueProcessor();
     }
 }

@@ -37,11 +37,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<ApiResponse<Void>> handleBusinessException(BusinessException e) {
         log.error("Business exception: {}", e.getMessage());
-        // If message is i18n key, get i18n message
-        String message = e.getMessage();
-        if (message != null && message.startsWith("error.")) {
-            message = i18nUtils.getMessage(message);
-        }
+        String message = i18nUtils.getMessage(e.getMessage());
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(ApiResponse.error(e.getCode(), message));

@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 
 import edu.zsc.ai.plugin.mysql.value.template.MySQLValueProcessorFactory;
 import edu.zsc.ai.plugin.value.DefaultValueProcessor;
+import edu.zsc.ai.plugin.value.JdbcValueContext;
 
 /**
  * MySQL-specific value processor that handles MySQL data type conversions.
@@ -20,8 +21,9 @@ public class MySQLValueProcessor extends DefaultValueProcessor {
     private static final Logger log = LoggerFactory.getLogger(MySQLValueProcessor.class);
 
     @Override
-    public Object getJdbcValue(ResultSet resultSet, int columnIndex, int sqlType, String columnTypeName)
-            throws SQLException {
+    public Object getJdbcValue(JdbcValueContext context) throws SQLException {
+        ResultSet resultSet = context.getResultSet();
+        int columnIndex = context.getColumnIndex();
         
         // First check if value is null
         Object value = resultSet.getObject(columnIndex);
@@ -42,23 +44,22 @@ public class MySQLValueProcessor extends DefaultValueProcessor {
         }
 
         // Delegate to type-specific processor via factory
-        return convertJdbcValueByType(resultSet, columnIndex, columnTypeName);
+        return convertJdbcValueByType(context);
     }
 
     @Override
-    public Object convertJdbcValueByType(ResultSet resultSet, int columnIndex, String columnTypeName) 
-            throws SQLException {
+    public Object convertJdbcValueByType(JdbcValueContext context) throws SQLException {
         try {
-            // Try to get type-specific processor from factory (Chat2DB pattern)
-            DefaultValueProcessor typeProcessor = MySQLValueProcessorFactory.getValueProcessor(columnTypeName);
+            // Try to get type-specific processor from factory
+            DefaultValueProcessor typeProcessor = MySQLValueProcessorFactory.getValueProcessor(context.getColumnTypeName());
             if (Objects.nonNull(typeProcessor)) {
-                return typeProcessor.convertJdbcValueByType(resultSet, columnIndex, columnTypeName);
+                return typeProcessor.convertJdbcValueByType(context);
             }
         } catch (Exception e) {
-            log.warn("Error using type-specific processor for type: {}", columnTypeName, e);
+            log.warn("Error using type-specific processor for type: {}", context.getColumnTypeName(), e);
         }
 
         // Fallback to default conversion
-        return super.convertJdbcValueByType(resultSet, columnIndex, columnTypeName);
+        return super.convertJdbcValueByType(context);
     }
 }

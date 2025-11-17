@@ -12,6 +12,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import edu.zsc.ai.plugin.capability.CommandExecutor;
+import edu.zsc.ai.plugin.value.JdbcValueContext;
+import edu.zsc.ai.plugin.value.JdbcValueContextFactory;
 import edu.zsc.ai.plugin.value.ValueProcessor;
 
 /**
@@ -29,21 +31,46 @@ public abstract class AbstractSqlExecutor implements CommandExecutor<SqlCommandR
     private static final Logger log = LoggerFactory.getLogger(AbstractSqlExecutor.class);
 
     /**
-     * Get the value processor for this database type.
-     * Subclasses must provide their database-specific value processor.
-     *
-     * @return the value processor
+     * Cached value processor instance (lazy initialization).
      */
-    protected abstract ValueProcessor getValueProcessor();
+    private ValueProcessor valueProcessor;
+
+    /**
+     * Create the value processor for this database type.
+     * Subclasses must implement this method to provide their database-specific value processor.
+     * This method is called only once, and the result is cached.
+     *
+     * @return the value processor instance
+     */
+    protected abstract ValueProcessor createValueProcessor();
+
+    /**
+     * Get the value processor for this database type.
+     * Uses lazy initialization with caching to avoid creating multiple instances.
+     *
+     * @return the cached value processor
+     */
+    protected final ValueProcessor getValueProcessor() {
+        if (valueProcessor == null) {
+            valueProcessor = createValueProcessor();
+        }
+        return valueProcessor;
+    }
 
     @Override
     public SqlCommandResult executeCommand(SqlCommandRequest command) {
         Connection connection = command.getConnection();
         SqlCommandResult result = createInitialResult(command);
+        
         boolean originalAutoCommit = true;
 
         try {
-            originalAutoCommit = setupTransaction(connection, command);
+            // Only get and modify autoCommit if transaction is needed
+            if (command.isNeedTransaction()) {
+                originalAutoCommit = connection.getAutoCommit();
+                disableAutoCommitIfNeeded(connection, command);
+            }
+            
             executeSqlStatement(connection, command, result);
             commitTransactionIfNeeded(connection, command);
             return result;
@@ -53,7 +80,10 @@ public abstract class AbstractSqlExecutor implements CommandExecutor<SqlCommandR
             return result;
 
         } finally {
-            restoreAutoCommit(connection, command, originalAutoCommit);
+            // Only restore autoCommit if transaction was used
+            if (command.isNeedTransaction()) {
+                restoreAutoCommit(connection, command, originalAutoCommit);
+            }
         }
     }
 
@@ -69,14 +99,18 @@ public abstract class AbstractSqlExecutor implements CommandExecutor<SqlCommandR
     }
 
     /**
-     * Setup transaction if needed and return original autoCommit state
+     * Disable autoCommit if transaction is needed.
+     * Subclasses can override this method to customize transaction handling
+     * for databases that don't support transactions or have special requirements.
+     *
+     * @param connection the database connection
+     * @param command the SQL command request
+     * @throws SQLException if unable to set autoCommit
      */
-    private boolean setupTransaction(Connection connection, SqlCommandRequest command) throws SQLException {
-        boolean originalAutoCommit = connection.getAutoCommit();
+    protected void disableAutoCommitIfNeeded(Connection connection, SqlCommandRequest command) throws SQLException {
         if (command.isNeedTransaction()) {
             connection.setAutoCommit(false);
         }
-        return originalAutoCommit;
     }
 
     /**
@@ -108,9 +142,15 @@ public abstract class AbstractSqlExecutor implements CommandExecutor<SqlCommandR
     }
 
     /**
-     * Commit transaction if needed
+     * Commit transaction if needed.
+     * Subclasses can override this method to customize commit behavior
+     * for databases that don't support transactions.
+     *
+     * @param connection the database connection
+     * @param command the SQL command request
+     * @throws SQLException if unable to commit
      */
-    private void commitTransactionIfNeeded(Connection connection, SqlCommandRequest command) throws SQLException {
+    protected void commitTransactionIfNeeded(Connection connection, SqlCommandRequest command) throws SQLException {
         if (command.isNeedTransaction()) {
             connection.commit();
         }
@@ -128,9 +168,15 @@ public abstract class AbstractSqlExecutor implements CommandExecutor<SqlCommandR
     }
 
     /**
-     * Rollback transaction if needed
+     * Rollback transaction if needed.
+     * Subclasses can override this method to customize rollback behavior
+     * for databases that don't support transactions.
+     *
+     * @param connection the database connection
+     * @param command the SQL command request
+     * @param e the original SQLException
      */
-    private void rollbackTransactionIfNeeded(Connection connection, SqlCommandRequest command, SQLException e) {
+    protected void rollbackTransactionIfNeeded(Connection connection, SqlCommandRequest command, SQLException e) {
         if (command.isNeedTransaction()) {
             try {
                 if (!connection.isClosed()) {
@@ -143,9 +189,15 @@ public abstract class AbstractSqlExecutor implements CommandExecutor<SqlCommandR
     }
 
     /**
-     * Restore original autoCommit state
+     * Restore original autoCommit state.
+     * Subclasses can override this method to customize autoCommit restoration
+     * for databases that don't support transactions.
+     *
+     * @param connection the database connection
+     * @param command the SQL command request
+     * @param originalAutoCommit the original autoCommit state to restore
      */
-    private void restoreAutoCommit(Connection connection, SqlCommandRequest command, boolean originalAutoCommit) {
+    protected void restoreAutoCommit(Connection connection, SqlCommandRequest command, boolean originalAutoCommit) {
         if (command.isNeedTransaction()) {
             try {
                 if (!connection.isClosed()) {
@@ -166,7 +218,7 @@ public abstract class AbstractSqlExecutor implements CommandExecutor<SqlCommandR
      */
     private void processQueryResult(Statement statement, SqlCommandResult result) throws SQLException {
         List<String> headers = new ArrayList<>();
-        ValueProcessor valueProcessor = getValueProcessor();
+        ValueProcessor processor = getValueProcessor();
 
         try (ResultSet resultSet = statement.getResultSet()) {
             ResultSetMetaData metaData = resultSet.getMetaData();
@@ -183,10 +235,9 @@ public abstract class AbstractSqlExecutor implements CommandExecutor<SqlCommandR
             while (resultSet.next()) {
                 List<Object> row = new ArrayList<>();
                 for (int i = 1; i <= columnCount; i++) {
-                    String columnTypeName = metaData.getColumnTypeName(i);
-                    int sqlType = metaData.getColumnType(i);
-                    // Use ValueProcessor to handle value
-                    Object value = valueProcessor.getJdbcValue(resultSet, i, sqlType, columnTypeName);
+                    // Build context from metadata using factory
+                    JdbcValueContext context = JdbcValueContextFactory.fromMetaData(resultSet, metaData, i);
+                    Object value = processor.getJdbcValue(context);
                     row.add(value);
                 }
                 rows.add(row);

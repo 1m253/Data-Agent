@@ -1,99 +1,91 @@
 package edu.zsc.ai.plugin.mysql.value.template;
 
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import edu.zsc.ai.plugin.mysql.value.template.MySQLCommonProcessors.MySQLBigIntProcessor;
-import edu.zsc.ai.plugin.mysql.value.template.MySQLCommonProcessors.MySQLBinaryProcessor;
-import edu.zsc.ai.plugin.mysql.value.template.MySQLCommonProcessors.MySQLBitProcessor;
-import edu.zsc.ai.plugin.mysql.value.template.MySQLCommonProcessors.MySQLBlobProcessor;
-import edu.zsc.ai.plugin.mysql.value.template.MySQLCommonProcessors.MySQLBooleanProcessor;
-import edu.zsc.ai.plugin.mysql.value.template.MySQLCommonProcessors.MySQLDateTimeProcessor;
-import edu.zsc.ai.plugin.mysql.value.template.MySQLCommonProcessors.MySQLDecimalProcessor;
-import edu.zsc.ai.plugin.mysql.value.template.MySQLCommonProcessors.MySQLDoubleProcessor;
-import edu.zsc.ai.plugin.mysql.value.template.MySQLCommonProcessors.MySQLEnumProcessor;
-import edu.zsc.ai.plugin.mysql.value.template.MySQLCommonProcessors.MySQLFloatProcessor;
-import edu.zsc.ai.plugin.mysql.value.template.MySQLCommonProcessors.MySQLSetProcessor;
-import edu.zsc.ai.plugin.mysql.value.template.MySQLCommonProcessors.MySQLSmallIntProcessor;
-import edu.zsc.ai.plugin.mysql.value.template.MySQLCommonProcessors.MySQLStringProcessor;
-import edu.zsc.ai.plugin.mysql.value.template.MySQLCommonProcessors.MySQLTextProcessor;
-import edu.zsc.ai.plugin.mysql.value.template.MySQLCommonProcessors.MySQLTimeProcessor;
-import edu.zsc.ai.plugin.mysql.value.template.MySQLCommonProcessors.MySQLTimestampProcessor;
-import edu.zsc.ai.plugin.mysql.value.template.MySQLCommonProcessors.MySQLTinyIntProcessor;
-import edu.zsc.ai.plugin.mysql.value.template.MySQLCommonProcessors.MySQLYearProcessor;
+import edu.zsc.ai.plugin.mysql.value.MySQLDataType;
 import edu.zsc.ai.plugin.value.DefaultValueProcessor;
 
 /**
  * Factory for creating type-specific value processors for MySQL.
  *
- * <p>This factory returns specialized processors for different MySQL data types,
- * allowing fine-grained control over type conversion logic.
+ * <p>This factory uses enum-based type mapping and shared processor instances
+ * for better performance and memory efficiency.
  *
  * @author hhz
  * @date 2025-11-14
  */
 public class MySQLValueProcessorFactory {
 
-    private static final Logger log = LoggerFactory.getLogger(MySQLValueProcessorFactory.class);
+    /**
+     * Shared processor instances (one instance per processor type)
+     */
+    private static final MySQLTinyIntProcessor TINYINT_PROCESSOR = new MySQLTinyIntProcessor();
+    private static final MySQLSmallIntProcessor SMALLINT_PROCESSOR = new MySQLSmallIntProcessor();
+    private static final MySQLIntProcessor INT_PROCESSOR = new MySQLIntProcessor();
+    private static final MySQLBigIntProcessor BIGINT_PROCESSOR = new MySQLBigIntProcessor();
+    private static final MySQLFloatProcessor FLOAT_PROCESSOR = new MySQLFloatProcessor();
+    private static final MySQLDoubleProcessor DOUBLE_PROCESSOR = new MySQLDoubleProcessor();
+    private static final MySQLDecimalProcessor DECIMAL_PROCESSOR = new MySQLDecimalProcessor();
+    private static final MySQLDateProcessor DATE_PROCESSOR = new MySQLDateProcessor();
+    private static final MySQLTimeProcessor TIME_PROCESSOR = new MySQLTimeProcessor();
+    private static final MySQLDateTimeProcessor DATETIME_PROCESSOR = new MySQLDateTimeProcessor();
+    private static final MySQLTimestampProcessor TIMESTAMP_PROCESSOR = new MySQLTimestampProcessor();
+    private static final MySQLYearProcessor YEAR_PROCESSOR = new MySQLYearProcessor();
+    private static final MySQLStringProcessor STRING_PROCESSOR = new MySQLStringProcessor();
+    private static final MySQLTextProcessor TEXT_PROCESSOR = new MySQLTextProcessor();
+    private static final MySQLBinaryProcessor BINARY_PROCESSOR = new MySQLBinaryProcessor();
+    private static final MySQLBlobProcessor BLOB_PROCESSOR = new MySQLBlobProcessor();
+    private static final MySQLJsonProcessor JSON_PROCESSOR = new MySQLJsonProcessor();
+    private static final MySQLEnumProcessor ENUM_PROCESSOR = new MySQLEnumProcessor();
+    private static final MySQLSetProcessor SET_PROCESSOR = new MySQLSetProcessor();
+    private static final MySQLBitProcessor BIT_PROCESSOR = new MySQLBitProcessor();
+    private static final MySQLBooleanProcessor BOOLEAN_PROCESSOR = new MySQLBooleanProcessor();
 
     /**
-     * Cache of type-specific processors
+     * Enum-based processor cache for fast lookup
      */
-    private static final Map<String, DefaultValueProcessor> PROCESSOR_CACHE = new HashMap<>();
+    private static final Map<MySQLDataType, DefaultValueProcessor> PROCESSOR_MAP = new EnumMap<>(MySQLDataType.class);
 
     static {
-        // Register type-specific processors
-        registerProcessor("TINYINT", new MySQLTinyIntProcessor());
-        registerProcessor("SMALLINT", new MySQLSmallIntProcessor());
-        registerProcessor("INT", new MySQLIntProcessor());
-        registerProcessor("INTEGER", new MySQLIntProcessor());
-        registerProcessor("BIGINT", new MySQLBigIntProcessor());
+        // Register shared processor instances using enum keys
+        PROCESSOR_MAP.put(MySQLDataType.TINYINT, TINYINT_PROCESSOR);
+        PROCESSOR_MAP.put(MySQLDataType.SMALLINT, SMALLINT_PROCESSOR);
+        PROCESSOR_MAP.put(MySQLDataType.INT, INT_PROCESSOR);
+        PROCESSOR_MAP.put(MySQLDataType.INTEGER, INT_PROCESSOR);  // Alias
+        PROCESSOR_MAP.put(MySQLDataType.BIGINT, BIGINT_PROCESSOR);
         
-        registerProcessor("FLOAT", new MySQLFloatProcessor());
-        registerProcessor("DOUBLE", new MySQLDoubleProcessor());
-        registerProcessor("DECIMAL", new MySQLDecimalProcessor());
-        registerProcessor("NUMERIC", new MySQLDecimalProcessor());
+        PROCESSOR_MAP.put(MySQLDataType.FLOAT, FLOAT_PROCESSOR);
+        PROCESSOR_MAP.put(MySQLDataType.DOUBLE, DOUBLE_PROCESSOR);
+        PROCESSOR_MAP.put(MySQLDataType.DECIMAL, DECIMAL_PROCESSOR);
+        PROCESSOR_MAP.put(MySQLDataType.NUMERIC, DECIMAL_PROCESSOR);  // Alias
         
-        registerProcessor("DATE", new MySQLDateProcessor());
-        registerProcessor("TIME", new MySQLTimeProcessor());
-        registerProcessor("DATETIME", new MySQLDateTimeProcessor());
-        registerProcessor("TIMESTAMP", new MySQLTimestampProcessor());
-        registerProcessor("YEAR", new MySQLYearProcessor());
+        PROCESSOR_MAP.put(MySQLDataType.DATE, DATE_PROCESSOR);
+        PROCESSOR_MAP.put(MySQLDataType.TIME, TIME_PROCESSOR);
+        PROCESSOR_MAP.put(MySQLDataType.DATETIME, DATETIME_PROCESSOR);
+        PROCESSOR_MAP.put(MySQLDataType.TIMESTAMP, TIMESTAMP_PROCESSOR);
+        PROCESSOR_MAP.put(MySQLDataType.YEAR, YEAR_PROCESSOR);
         
-        registerProcessor("CHAR", new MySQLStringProcessor());
-        registerProcessor("VARCHAR", new MySQLStringProcessor());
-        registerProcessor("TEXT", new MySQLTextProcessor());
-        registerProcessor("TINYTEXT", new MySQLTextProcessor());
-        registerProcessor("MEDIUMTEXT", new MySQLTextProcessor());
-        registerProcessor("LONGTEXT", new MySQLTextProcessor());
+        PROCESSOR_MAP.put(MySQLDataType.CHAR, STRING_PROCESSOR);
+        PROCESSOR_MAP.put(MySQLDataType.VARCHAR, STRING_PROCESSOR);
         
-        registerProcessor("BINARY", new MySQLBinaryProcessor());
-        registerProcessor("VARBINARY", new MySQLBinaryProcessor());
-        registerProcessor("BLOB", new MySQLBlobProcessor());
-        registerProcessor("TINYBLOB", new MySQLBlobProcessor());
-        registerProcessor("MEDIUMBLOB", new MySQLBlobProcessor());
-        registerProcessor("LONGBLOB", new MySQLBlobProcessor());
+        PROCESSOR_MAP.put(MySQLDataType.TEXT, TEXT_PROCESSOR);
+        PROCESSOR_MAP.put(MySQLDataType.TINYTEXT, TEXT_PROCESSOR);
+        PROCESSOR_MAP.put(MySQLDataType.MEDIUMTEXT, TEXT_PROCESSOR);
+        PROCESSOR_MAP.put(MySQLDataType.LONGTEXT, TEXT_PROCESSOR);
         
-        registerProcessor("JSON", new MySQLJsonProcessor());
-        registerProcessor("ENUM", new MySQLEnumProcessor());
-        registerProcessor("SET", new MySQLSetProcessor());
+        PROCESSOR_MAP.put(MySQLDataType.BINARY, BINARY_PROCESSOR);
+        PROCESSOR_MAP.put(MySQLDataType.VARBINARY, BINARY_PROCESSOR);
         
-        registerProcessor("BIT", new MySQLBitProcessor());
-        registerProcessor("BOOLEAN", new MySQLBooleanProcessor());
-        registerProcessor("BOOL", new MySQLBooleanProcessor());
-    }
-
-    /**
-     * Register a type-specific processor.
-     *
-     * @param typeName the MySQL type name (case-insensitive)
-     * @param processor the processor instance
-     */
-    private static void registerProcessor(String typeName, DefaultValueProcessor processor) {
-        PROCESSOR_CACHE.put(typeName.toUpperCase(), processor);
+        // BLOB type (all BLOB variants are handled by MySQLDataType.BLOB)
+        PROCESSOR_MAP.put(MySQLDataType.BLOB, BLOB_PROCESSOR);
+        
+        PROCESSOR_MAP.put(MySQLDataType.JSON, JSON_PROCESSOR);
+        PROCESSOR_MAP.put(MySQLDataType.ENUM, ENUM_PROCESSOR);
+        PROCESSOR_MAP.put(MySQLDataType.SET, SET_PROCESSOR);
+        PROCESSOR_MAP.put(MySQLDataType.BIT, BIT_PROCESSOR);
+        PROCESSOR_MAP.put(MySQLDataType.BOOLEAN, BOOLEAN_PROCESSOR);
+        PROCESSOR_MAP.put(MySQLDataType.BOOL, BOOLEAN_PROCESSOR);  // Alias
     }
 
     /**
@@ -110,37 +102,37 @@ public class MySQLValueProcessorFactory {
         // Extract base type name (remove size, unsigned, zerofill, etc.)
         String baseTypeName = extractBaseTypeName(columnTypeName);
         
-        return PROCESSOR_CACHE.get(baseTypeName.toUpperCase());
+        // Convert to enum and lookup processor
+        MySQLDataType dataType = MySQLDataType.fromTypeName(baseTypeName);
+        return dataType != null ? PROCESSOR_MAP.get(dataType) : null;
     }
 
     /**
      * Extract base type name from full type definition.
+     * For MySQL 8.0+, getColumnTypeName() returns clean type names without display width.
+     * This method only needs to remove attributes like UNSIGNED.
+     * 
      * Examples:
-     * - "INT(11) UNSIGNED ZEROFILL" -> "INT"
-     * - "VARCHAR(255)" -> "VARCHAR"
-     * - "DECIMAL(10,2)" -> "DECIMAL"
+     * - "INT UNSIGNED" -> "INT"
+     * - "BIGINT UNSIGNED" -> "BIGINT"
+     * - "VARCHAR" -> "VARCHAR"
+     * - "DECIMAL" -> "DECIMAL"
      *
      * @param fullTypeName the full type name
      * @return the base type name
      */
     private static String extractBaseTypeName(String fullTypeName) {
-        if (fullTypeName == null) {
+        if (fullTypeName == null || fullTypeName.isEmpty()) {
             return "";
         }
 
-        // Remove everything after first space or parenthesis
+        // Remove attributes after space (UNSIGNED, ZEROFILL, etc.)
         int spaceIndex = fullTypeName.indexOf(' ');
-        int parenIndex = fullTypeName.indexOf('(');
-        
-        int endIndex = fullTypeName.length();
         if (spaceIndex > 0) {
-            endIndex = Math.min(endIndex, spaceIndex);
-        }
-        if (parenIndex > 0) {
-            endIndex = Math.min(endIndex, parenIndex);
+            return fullTypeName.substring(0, spaceIndex).trim();
         }
         
-        return fullTypeName.substring(0, endIndex).trim();
+        return fullTypeName.trim();
     }
 
     /**
@@ -155,7 +147,6 @@ public class MySQLValueProcessorFactory {
 
     /**
      * Check if a type has ZEROFILL attribute.
-     *
      * @param fullTypeName the full type name
      * @return true if ZEROFILL
      */

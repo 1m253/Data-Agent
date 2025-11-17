@@ -7,30 +7,28 @@ import edu.zsc.ai.plugin.value.DefaultValueProcessor;
 import edu.zsc.ai.plugin.value.JdbcValueContext;
 
 /**
- * MySQL INT type processor.
- * Handles INT, INTEGER types with UNSIGNED and ZEROFILL attributes.
+ * Processor for MySQL BIGINT type.
+ * Handles UNSIGNED BIGINT by converting to unsigned string representation.
  *
  * @author hhz
- * @date 2025-11-14
+ * @date 2025-11-15
  */
-public class MySQLIntProcessor extends DefaultValueProcessor {
-
+public class MySQLBigIntProcessor extends DefaultValueProcessor {
     @Override
     public Object convertJdbcValueByType(JdbcValueContext context) throws SQLException {
         ResultSet resultSet = context.getResultSet();
         int columnIndex = context.getColumnIndex();
         String columnTypeName = context.getColumnTypeName();
         
-        int value = resultSet.getInt(columnIndex);
+        long value = resultSet.getLong(columnIndex);
         if (resultSet.wasNull()) {
             return null;
         }
         
-        // Handle UNSIGNED: MySQL INT UNSIGNED range is 0 to 4294967295
-        // JDBC getInt() returns signed int, so large unsigned values may be negative
+        // Handle UNSIGNED BIGINT
         if (MySQLValueProcessorFactory.isUnsigned(columnTypeName) && value < 0) {
-            // Convert to long for unsigned representation
-            return Integer.toUnsignedLong(value);
+            // For unsigned bigint, we need to use BigInteger
+            return Long.toUnsignedString(value);
         }
         
         return value;
