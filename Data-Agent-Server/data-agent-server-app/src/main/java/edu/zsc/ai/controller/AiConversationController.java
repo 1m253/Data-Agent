@@ -1,19 +1,21 @@
 package edu.zsc.ai.controller;
 
 import cn.dev33.satoken.annotation.SaCheckLogin;
+import edu.zsc.ai.model.dto.request.ConversationListRequest;
 import edu.zsc.ai.model.dto.request.CreateConversationRequest;
+import edu.zsc.ai.model.dto.request.DeleteConversationRequest;
+import edu.zsc.ai.model.dto.request.GetConversationRequest;
+import edu.zsc.ai.model.dto.request.UpdateConversationRequest;
 import edu.zsc.ai.model.dto.response.ApiResponse;
 import edu.zsc.ai.model.dto.response.ConversationResponse;
+import edu.zsc.ai.model.dto.response.PageResponse;
 import edu.zsc.ai.service.AiConversationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 
 /**
  * Controller for AI conversation operations
@@ -22,7 +24,7 @@ import javax.validation.Valid;
  */
 @Slf4j
 @RestController
-@RequestMapping("/api/ai")
+@RequestMapping("/api/ai/conversation")
 @RequiredArgsConstructor
 @Validated
 public class AiConversationController {
@@ -35,7 +37,7 @@ public class AiConversationController {
      * @param request conversation creation request
      * @return created conversation response
      */
-    @PostMapping("/conversation/create")
+    @PostMapping("/create")
     @SaCheckLogin
     public ApiResponse<ConversationResponse> createConversation(@Valid @RequestBody CreateConversationRequest request) {
         log.info("Creating conversation with title: {}", request.getTitle());
@@ -43,5 +45,70 @@ public class AiConversationController {
         ConversationResponse response = aiConversationService.createConversation(request);
 
         return ApiResponse.success(response);
+    }
+
+    /**
+     * Get conversation list with pagination
+     *
+     * @param request pagination and filter request
+     * @return paginated conversation list
+     */
+    @GetMapping("/list")
+    @SaCheckLogin
+    public ApiResponse<PageResponse<ConversationResponse>> getConversationList(@Valid ConversationListRequest request) {
+        log.info("Getting conversation list: page={}, size={}, title={}",
+                request.getCurrent(), request.getSize(), request.getTitle());
+
+        PageResponse<ConversationResponse> response = aiConversationService.getConversationList(request);
+
+        return ApiResponse.success(response);
+    }
+
+    /**
+     * Get conversation details
+     *
+     * @param request get conversation request
+     * @return conversation details
+     */
+    @PostMapping("/get")
+    @SaCheckLogin
+    public ApiResponse<ConversationResponse> getConversationById(@Valid @RequestBody GetConversationRequest request) {
+        log.info("Getting conversation details: id={}", request.getId());
+
+        ConversationResponse response = aiConversationService.getConversationById(request);
+
+        return ApiResponse.success(response);
+    }
+
+    /**
+     * Update conversation
+     *
+     * @param request update request
+     * @return updated conversation response
+     */
+    @PutMapping("/update")
+    @SaCheckLogin
+    public ApiResponse<ConversationResponse> updateConversation(@Valid @RequestBody UpdateConversationRequest request) {
+        log.info("Updating conversation: id={}, title={}", request.getId(), request.getTitle());
+
+        ConversationResponse response = aiConversationService.updateConversation(request);
+
+        return ApiResponse.success(response);
+    }
+
+    /**
+     * Delete conversation (soft delete)
+     *
+     * @param request delete request
+     * @return success response
+     */
+    @DeleteMapping("/delete")
+    @SaCheckLogin
+    public ApiResponse<Void> deleteConversation(@Valid @RequestBody DeleteConversationRequest request) {
+        log.info("Deleting conversation: id={}", request.getId());
+
+        aiConversationService.deleteConversation(request);
+
+        return ApiResponse.success();
     }
 }

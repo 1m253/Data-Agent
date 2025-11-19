@@ -1,6 +1,6 @@
 package edu.zsc.ai.model.dto.response;
 
-import edu.zsc.ai.model.enums.ConnectionTestStatus;
+import edu.zsc.ai.enums.ConnectionTestStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

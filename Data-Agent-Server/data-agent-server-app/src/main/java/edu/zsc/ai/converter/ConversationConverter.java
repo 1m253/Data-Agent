@@ -3,6 +3,10 @@ package edu.zsc.ai.converter;
 import edu.zsc.ai.model.dto.response.ConversationResponse;
 import edu.zsc.ai.model.entity.AiConversation;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+
 /**
  * Converter for conversation entity and response DTO
  *
@@ -30,5 +34,21 @@ public class ConversationConverter {
         response.setUpdatedAt(conversation.getUpdatedAt());
 
         return response;
+    }
+
+    /**
+     * Convert conversation entity list to response DTO list
+     *
+     * @param conversations conversation entity list
+     * @return conversation response DTO list
+     */
+    public static List<ConversationResponse> toResponseList(List<AiConversation> conversations) {
+        if (conversations == null || conversations.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        return conversations.stream()
+                .map(ConversationConverter::toResponse)
+                .collect(Collectors.toList());
     }
 }

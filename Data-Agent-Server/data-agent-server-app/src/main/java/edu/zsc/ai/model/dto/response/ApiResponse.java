@@ -1,6 +1,6 @@
 package edu.zsc.ai.model.dto.response;
 
-import edu.zsc.ai.common.ErrorCode;
+import edu.zsc.ai.enums.ErrorCode;
 import lombok.Data;
 
 import java.io.Serializable;
