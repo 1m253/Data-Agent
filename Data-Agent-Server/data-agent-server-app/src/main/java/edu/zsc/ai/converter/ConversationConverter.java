@@ -1,7 +1,7 @@
 package edu.zsc.ai.converter;
 
-import edu.zsc.ai.model.dto.response.ConversationResponse;
-import edu.zsc.ai.model.entity.AiConversation;
+import edu.zsc.ai.model.dto.response.ai.conversation.ConversationResponse;
+import edu.zsc.ai.model.entity.ai.AiConversation;
 
 import java.util.Collections;
 import java.util.List;

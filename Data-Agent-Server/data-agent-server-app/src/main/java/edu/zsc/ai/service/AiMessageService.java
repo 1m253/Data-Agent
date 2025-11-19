@@ -1,11 +1,11 @@
 package edu.zsc.ai.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import edu.zsc.ai.model.dto.request.MessageQueryRequest;
-import edu.zsc.ai.model.dto.request.SaveMessageRequest;
-import edu.zsc.ai.model.dto.response.HistoryContextResponse;
-import edu.zsc.ai.model.dto.response.PageResponse;
-import edu.zsc.ai.model.entity.AiMessage;
+import edu.zsc.ai.model.dto.request.ai.message.MessageQueryRequest;
+import edu.zsc.ai.model.dto.request.ai.message.SaveMessageRequest;
+import edu.zsc.ai.model.dto.response.ai.message.HistoryContextResponse;
+import edu.zsc.ai.model.dto.response.base.PageResponse;
+import edu.zsc.ai.model.entity.ai.AiMessage;
 
 /**
  * Service interface for ai_message operations

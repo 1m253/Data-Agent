@@ -1,7 +1,7 @@
 package edu.zsc.ai.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import edu.zsc.ai.model.entity.SysSessions;
+import edu.zsc.ai.model.entity.sys.SysSessions;
 
 /**
  * Service interface for sys_sessions operations

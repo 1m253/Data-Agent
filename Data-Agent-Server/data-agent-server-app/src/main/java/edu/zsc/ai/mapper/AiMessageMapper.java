@@ -1,7 +1,7 @@
 package edu.zsc.ai.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import edu.zsc.ai.model.entity.AiMessage;
+import edu.zsc.ai.model.entity.ai.AiMessage;
 import org.apache.ibatis.annotations.Mapper;
 
 /**

@@ -1,6 +1,6 @@
 package edu.zsc.ai.converter;
 
-import edu.zsc.ai.enums.MessageRoleEnum;
+import edu.zsc.ai.enums.ai.message.MessageRoleEnum;
 import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.SystemMessage;

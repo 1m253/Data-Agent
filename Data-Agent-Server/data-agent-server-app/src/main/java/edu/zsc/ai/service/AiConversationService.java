@@ -1,14 +1,14 @@
 package edu.zsc.ai.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import edu.zsc.ai.model.entity.AiConversation;
-import edu.zsc.ai.model.dto.request.CreateConversationRequest;
-import edu.zsc.ai.model.dto.request.ConversationListRequest;
-import edu.zsc.ai.model.dto.request.DeleteConversationRequest;
-import edu.zsc.ai.model.dto.request.GetConversationRequest;
-import edu.zsc.ai.model.dto.request.UpdateConversationRequest;
-import edu.zsc.ai.model.dto.response.ConversationResponse;
-import edu.zsc.ai.model.dto.response.PageResponse;
+import edu.zsc.ai.model.entity.ai.AiConversation;
+import edu.zsc.ai.model.dto.request.ai.conversation.CreateConversationRequest;
+import edu.zsc.ai.model.dto.request.ai.conversation.ConversationListRequest;
+import edu.zsc.ai.model.dto.request.ai.conversation.DeleteConversationRequest;
+import edu.zsc.ai.model.dto.request.ai.conversation.GetConversationRequest;
+import edu.zsc.ai.model.dto.request.ai.conversation.UpdateConversationRequest;
+import edu.zsc.ai.model.dto.response.ai.conversation.ConversationResponse;
+import edu.zsc.ai.model.dto.response.base.PageResponse;
 
 /**
  * Service interface for ai_conversation operations

@@ -1,7 +1,7 @@
 package edu.zsc.ai.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import edu.zsc.ai.model.entity.AiMessageBlock;
+import edu.zsc.ai.model.entity.ai.AiMessageBlock;
 
 /**
  * Service interface for ai_message_block operations

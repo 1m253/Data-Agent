@@ -1,7 +1,7 @@
 package edu.zsc.ai.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import edu.zsc.ai.model.entity.AiCompressionRecord;
+import edu.zsc.ai.model.entity.ai.AiCompressionRecord;
 
 /**
  * Service interface for ai_compression_record operations
