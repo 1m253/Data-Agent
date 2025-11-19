@@ -4,7 +4,7 @@ import edu.zsc.ai.converter.ConnectionConfigConverter;
 import edu.zsc.ai.model.dto.request.ConnectRequest;
 import edu.zsc.ai.model.dto.response.ConnectionTestResponse;
 import edu.zsc.ai.model.dto.response.OpenConnectionResponse;
-import edu.zsc.ai.model.enums.ConnectionTestStatus;
+import edu.zsc.ai.enums.ConnectionTestStatus;
 import edu.zsc.ai.plugin.Plugin;
 import edu.zsc.ai.plugin.capability.ConnectionProvider;
 import edu.zsc.ai.plugin.manager.PluginManager;

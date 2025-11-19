@@ -1,6 +1,6 @@
 package edu.zsc.ai.exception;
 
-import edu.zsc.ai.common.ErrorCode;
+import edu.zsc.ai.enums.ErrorCode;
 import lombok.Getter;
 
 /**

@@ -1,4 +1,4 @@
-package edu.zsc.ai.model.enums;
+package edu.zsc.ai.enums;
 
 /**
  * Connection test status enumeration

@@ -9,7 +9,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import edu.zsc.ai.common.ErrorCode;
+import edu.zsc.ai.enums.ErrorCode;
 import edu.zsc.ai.exception.BusinessException;
 import edu.zsc.ai.model.dto.response.ApiResponse;
 import edu.zsc.ai.util.I18nUtils;
