@@ -145,4 +145,42 @@ public class AiConversationServiceImpl extends ServiceImpl<AiConversationMapper,
 
         log.info("Deleted conversation: userId={}, id={}", userId, request.getId());
     }
+
+    @Override
+    public Long createOrGetConversation(Long conversationId, Long userId, String title) {
+        if (conversationId != null) {
+            AiConversation existing = getByIdAndUser(conversationId, userId);
+            if (existing != null) {
+                return existing.getId();
+            }
+        }
+
+        AiConversation conversation = new AiConversation();
+        conversation.setUserId(userId);
+        if (StringUtils.isNotBlank(title)) {
+            conversation.setTitle(StringUtils.trim(title));
+        }
+
+        this.save(conversation);
+
+        return conversation.getId();
+    }
+
+    @Override
+    public AiConversation getByIdAndUser(Long conversationId, Long userId) {
+        LambdaQueryWrapper<AiConversation> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(AiConversation::getId, conversationId)
+                .eq(AiConversation::getUserId, userId);
+        return this.getOne(queryWrapper, false);
+    }
+
+    @Override
+    public void updateConversationTokens(Long conversationId, Long userId, Integer tokenCount) {
+        LambdaUpdateWrapper<AiConversation> updateWrapper = new LambdaUpdateWrapper<>();
+        updateWrapper.eq(AiConversation::getId, conversationId)
+                .eq(AiConversation::getUserId, userId)
+                .set(AiConversation::getTokenCount, tokenCount)
+                .set(AiConversation::getUpdatedAt, LocalDateTime.now());
+        this.update(updateWrapper);
+    }
 }
