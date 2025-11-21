@@ -6,7 +6,7 @@ import edu.zsc.ai.mapper.db.DbConnectionMapper;
 import edu.zsc.ai.model.dto.request.db.ConnectionCreateRequest;
 import edu.zsc.ai.model.dto.response.db.ConnectionResponse;
 import edu.zsc.ai.model.entity.db.DbConnection;
-import edu.zsc.ai.service.DbConnectionService;
+import edu.zsc.ai.service.db.DbConnectionService;
 import edu.zsc.ai.util.JsonUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
