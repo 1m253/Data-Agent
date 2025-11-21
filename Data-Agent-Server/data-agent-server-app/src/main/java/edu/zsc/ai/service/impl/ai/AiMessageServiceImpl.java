@@ -16,8 +16,9 @@ import edu.zsc.ai.model.dto.response.ai.message.HistoryContextResponse;
 import edu.zsc.ai.model.dto.response.base.PageResponse;
 import edu.zsc.ai.model.entity.ai.AiMessage;
 import edu.zsc.ai.model.entity.ai.AiMessageBlock;
-import edu.zsc.ai.service.AiMessageBlockService;
-import edu.zsc.ai.service.AiMessageService;
+import edu.zsc.ai.service.ai.AiMessageBlockService;
+import edu.zsc.ai.service.ai.AiMessageService;
+import edu.zsc.ai.service.ai.AiConversationService;
 import edu.zsc.ai.util.ConditionalUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,7 +39,7 @@ public class AiMessageServiceImpl extends ServiceImpl<AiMessageMapper, AiMessage
         implements AiMessageService {
 
     private final AiMessageBlockService aiMessageBlockService;
-    private final edu.zsc.ai.service.AiConversationService aiConversationService;
+    private final AiConversationService aiConversationService;
 
     @Override
     @Transactional(rollbackFor = Exception.class)

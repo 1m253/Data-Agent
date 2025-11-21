@@ -1,7 +1,7 @@
 package edu.zsc.ai.service.impl.manager;
 
-import edu.zsc.ai.service.manager.ToolCallingManager;
-import edu.zsc.ai.service.manager.ToolExecutor;
+import edu.zsc.ai.service.ai.manager.ToolCallingManager;
+import edu.zsc.ai.service.ai.manager.ToolExecutor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
