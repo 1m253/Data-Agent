@@ -45,3 +45,8 @@ sa-token:
   token-style: jwt
   is-write-header: true
   token-prefix: Bearer
+
+auth:
+  refresh-token:
+    expire-seconds: 2592000     # 30 days
+
