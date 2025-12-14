@@ -70,4 +70,10 @@ public class SysUsers {
      */
     @TableField(value = "updated_at")
     private LocalDateTime updatedAt;
+
+    /**
+     * Authentication provider
+     */
+    @TableField("auth_provider")
+    private String authProvider;
 }
