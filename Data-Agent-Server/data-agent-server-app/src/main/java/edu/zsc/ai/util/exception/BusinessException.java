@@ -18,6 +18,11 @@ public class BusinessException extends RuntimeException {
         this.code = code;
     }
 
+    public BusinessException(String message) {
+        super(message);
+        this.code = ResponseConstant.SYSTEM_ERROR;
+    }
+
     // ========== Basic Factory Methods ==========
 
     public static BusinessException of(int code, String message) {
