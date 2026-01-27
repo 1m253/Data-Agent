@@ -49,6 +49,8 @@ public class GoogleOAuthStrategy implements OAuthStrategy {
                 .queryParam(OAuthConstant.PARAM_SCOPE, OAuthConstant.GOOGLE_SCOPE)
                 .queryParam(OAuthConstant.PARAM_STATE, state)
                 .queryParam(OAuthConstant.PARAM_ACCESS_TYPE, OAuthConstant.GOOGLE_ACCESS_TYPE)
+                .queryParam(OAuthConstant.PARAM_PROMPT, OAuthConstant.GOOGLE_PROMPT)
+                .queryParam(OAuthConstant.PARAM_NONCE, generateNonce())
                 .build().toUriString();
     }
 

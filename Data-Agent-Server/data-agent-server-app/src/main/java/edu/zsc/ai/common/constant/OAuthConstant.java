@@ -12,10 +12,11 @@ public class OAuthConstant {
     // Google OAuth
     public static final String GOOGLE_AUTHORIZATION_URI = "https://accounts.google.com/o/oauth2/v2/auth";
     public static final String GOOGLE_TOKEN_URI = "https://oauth2.googleapis.com/token";
-    public static final String GOOGLE_SCOPE = "openid email profile";
-    public static final String GOOGLE_ACCESS_TYPE = "offline";
+    public static final String GOOGLE_SCOPE = "openid,email,profile";
+    public static final String GOOGLE_ACCESS_TYPE = "online";
     public static final String GOOGLE_RESPONSE_TYPE = "code";
     public static final String GOOGLE_GRANT_TYPE = "authorization_code";
+    public static final String GOOGLE_PROMPT = "consent";
 
     // GitHub OAuth
     public static final String GITHUB_AUTHORIZATION_URI = "https://github.com/login/oauth/authorize";
@@ -32,6 +33,8 @@ public class OAuthConstant {
     public static final String PARAM_SCOPE = "scope";
     public static final String PARAM_STATE = "state";
     public static final String PARAM_ACCESS_TYPE = "access_type";
+    public static final String PARAM_PROMPT = "prompt";
+    public static final String PARAM_NONCE = "nonce";
     public static final String PARAM_CODE = "code";
     public static final String PARAM_GRANT_TYPE = "grant_type";
 
