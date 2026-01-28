@@ -13,6 +13,7 @@ import edu.zsc.ai.domain.model.dto.request.sys.RegisterRequest;
 import edu.zsc.ai.domain.model.dto.request.sys.ResetPasswordRequest;
 import edu.zsc.ai.domain.model.dto.request.sys.RevokeRefreshTokenBySessionRequest;
 import edu.zsc.ai.domain.model.dto.response.sys.TokenPairResponse;
+import edu.zsc.ai.domain.model.dto.response.sys.UserResponse;
 import edu.zsc.ai.domain.model.entity.sys.SysRefreshTokens;
 import edu.zsc.ai.domain.model.entity.sys.SysSessions;
 import edu.zsc.ai.domain.model.entity.sys.SysUsers;
@@ -41,6 +42,25 @@ public class AuthServiceImpl implements AuthService {
 
         @Autowired
         private SysRefreshTokensService sysRefreshTokensService;
+
+        @Override
+        public UserResponse getCurrentUser() {
+                long userId = StpUtil.getLoginIdAsLong();
+                SysUsers user = sysUsersService.getById(userId);
+                BusinessException.throwIf(user == null, ResponseConstant.UNAUTHORIZED,
+                                ResponseConstant.USER_NOT_FOUND_MESSAGE);
+
+                return UserResponse.builder()
+                                .id(user.getId())
+                                .username(user.getUsername())
+                                .email(user.getEmail())
+                                .avatarUrl(user.getAvatarUrl())
+                                .verified(user.getVerified())
+                                .authProvider(user.getAuthProvider())
+                                .createdAt(user.getCreatedAt())
+                                .updatedAt(user.getUpdatedAt())
+                                .build();
+        }
 
         @Override
         public TokenPairResponse loginByEmail(LoginRequest request) {
