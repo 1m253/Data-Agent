@@ -1,6 +1,7 @@
 package edu.zsc.ai.controller;
 
 import edu.zsc.ai.domain.model.dto.request.sys.LoginRequest;
+import edu.zsc.ai.domain.model.dto.request.sys.RefreshTokenRequest;
 import edu.zsc.ai.domain.model.dto.request.sys.RegisterRequest;
 import edu.zsc.ai.domain.model.dto.request.sys.ResetPasswordRequest;
 import edu.zsc.ai.domain.model.dto.response.sys.TokenPairResponse;
@@ -35,8 +36,8 @@ public class AuthController {
     }
 
     @PostMapping("/refresh")
-    public TokenPairResponse refresh(@RequestBody @Validated String refreshToken) {
-        return authService.refreshToken(refreshToken);
+    public TokenPairResponse refresh(@RequestBody @Validated RefreshTokenRequest request) {
+        return authService.refreshToken(request.getRefreshToken());
     }
 
     @PostMapping("/register")
