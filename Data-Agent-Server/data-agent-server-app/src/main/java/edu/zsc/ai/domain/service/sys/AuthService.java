@@ -2,6 +2,7 @@ package edu.zsc.ai.domain.service.sys;
 
 import edu.zsc.ai.domain.model.dto.request.sys.LoginRequest;
 import edu.zsc.ai.domain.model.dto.response.sys.TokenPairResponse;
+import edu.zsc.ai.domain.model.dto.response.sys.UserResponse;
 
 public interface AuthService {
     /**
@@ -28,4 +29,9 @@ public interface AuthService {
      * Reset password
      */
     Boolean resetPassword(edu.zsc.ai.domain.model.dto.request.sys.ResetPasswordRequest request);
+
+    /**
+     * Get current user info
+     */
+    UserResponse getCurrentUser();
 }
