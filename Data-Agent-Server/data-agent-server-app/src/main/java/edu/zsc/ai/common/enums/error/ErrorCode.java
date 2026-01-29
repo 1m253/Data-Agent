@@ -3,230 +3,67 @@ package edu.zsc.ai.common.enums.error;
 import lombok.Getter;
 
 /**
- * Custom error codes
- * Using internationalization keys as messages
- *
- * @author hhz
+ * Custom error codes (3-digit format for simplicity)
  */
 @Getter
 public enum ErrorCode {
 
-    // ==================== Common Response (0-99) ====================
-    
-    /**
-     * Operation successful
-     */
-    SUCCESS(0, "common.success"),
-    
-    // ==================== Client Errors (40000-49999) ====================
-    
-    /**
-     * Request parameters error
-     */
-    PARAMS_ERROR(40000, "error.params"),
-    
-    /**
-     * User not logged in
-     */
-    NOT_LOGIN_ERROR(40100, "error.not.login"),
-    
-    /**
-     * No permission
-     */
-    NO_AUTH_ERROR(40101, "error.no.auth"),
-    
-    /**
-     * Resource not found
-     */
-    NOT_FOUND_ERROR(40400, "error.not.found"),
-    
-    /**
-     * Access forbidden
-     */
-    FORBIDDEN_ERROR(40300, "error.forbidden"),
-    
-    // ==================== Server Errors (50000-50099) ====================
-    
-    /**
-     * System internal error
-     */
-    SYSTEM_ERROR(50000, "error.system"),
-    
-    /**
-     * Operation failed
-     */
-    OPERATION_ERROR(50001, "error.operation"),
+    // ==================== Common (200) ====================
+    SUCCESS(200, "common.success"),
 
-    // ==================== Database Connection (50100-50199) ====================
+    // ==================== Client Errors (400-499) ====================
+    PARAMS_ERROR(400, "error.params"),
+    NOT_LOGIN_ERROR(401, "error.not.login"),
+    NO_AUTH_ERROR(403, "error.no.auth"),
+    NOT_FOUND_ERROR(404, "error.not.found"),
 
-    /**
-     * Database connection failed
-     */
-    DB_CONNECTION_ERROR(50100, "error.db.connection"),
+    // ==================== Server Errors (500-599) ====================
+    SYSTEM_ERROR(500, "error.system"),
+    OPERATION_ERROR(501, "error.operation"),
 
-    /**
-     * Database connection timeout
-     */
-    DB_CONNECTION_TIMEOUT(50101, "error.db.connection.timeout"),
+    // ==================== Database Connection (510-519) ====================
+    DB_CONNECTION_ERROR(510, "error.db.connection"),
+    DB_CONNECTION_TIMEOUT(511, "error.db.connection.timeout"),
+    DB_CONNECTION_NOT_FOUND(512, "error.db.connection.not.found"),
+    DB_CONNECTION_ALREADY_EXISTS(513, "error.db.connection.already.exists"),
+    DB_CONNECTION_CONFIG_ERROR(514, "error.db.connection.config"),
 
-    /**
-     * Database connection not found
-     */
-    DB_CONNECTION_NOT_FOUND(50102, "error.db.connection.not.found"),
+    // ==================== Driver (520-529) ====================
+    DRIVER_NOT_FOUND(520, "error.driver.not.found"),
+    DRIVER_LOAD_ERROR(521, "error.driver.load"),
+    DRIVER_DOWNLOAD_ERROR(522, "error.driver.download"),
+    DRIVER_VERSION_NOT_SUPPORTED(523, "error.driver.version.not.supported"),
+    DRIVER_FILE_CORRUPTED(524, "error.driver.file.corrupted"),
 
-    /**
-     * Database connection already exists
-     */
-    DB_CONNECTION_ALREADY_EXISTS(50103, "error.db.connection.already.exists"),
+    // ==================== SQL Execution (530-539) ====================
+    SQL_SYNTAX_ERROR(530, "error.sql.syntax"),
+    SQL_EXECUTION_ERROR(531, "error.sql.execution"),
+    SQL_TIMEOUT_ERROR(532, "error.sql.timeout"),
+    TRANSACTION_COMMIT_ERROR(533, "error.transaction.commit"),
+    TRANSACTION_ROLLBACK_ERROR(534, "error.transaction.rollback"),
 
-    /**
-     * Database connection configuration error
-     */
-    DB_CONNECTION_CONFIG_ERROR(50104, "error.db.connection.config"),
+    // ==================== Plugin (540-549) ====================
+    PLUGIN_NOT_FOUND(540, "error.plugin.not.found"),
+    PLUGIN_LOAD_ERROR(541, "error.plugin.load"),
+    PLUGIN_NOT_SUPPORT(542, "error.plugin.not.support"),
+    PLUGIN_INIT_ERROR(543, "error.plugin.init"),
 
-    // ==================== Driver (50200-50299) ====================
+    // ==================== File Operation (550-559) ====================
+    FILE_NOT_FOUND(550, "error.file.not.found"),
+    FILE_READ_ERROR(551, "error.file.read"),
+    FILE_WRITE_ERROR(552, "error.file.write"),
+    FILE_DELETE_ERROR(553, "error.file.delete"),
+    FILE_FORMAT_NOT_SUPPORTED(554, "error.file.format.not.supported"),
+    FILE_SIZE_EXCEEDED(555, "error.file.size.exceeded"),
 
-    /**
-     * Driver file not found
-     */
-    DRIVER_NOT_FOUND(50200, "error.driver.not.found"),
+    // ==================== Data Validation (560-569) ====================
+    VALIDATION_ERROR(560, "error.validation"),
+    REQUIRED_FIELD_EMPTY(561, "error.required.field.empty"),
+    FIELD_FORMAT_ERROR(562, "error.field.format"),
+    FIELD_LENGTH_EXCEEDED(563, "error.field.length.exceeded"),
+    FIELD_VALUE_OUT_OF_RANGE(564, "error.field.value.out.of.range");
 
-    /**
-     * Driver loading failed
-     */
-    DRIVER_LOAD_ERROR(50201, "error.driver.load"),
-
-    /**
-     * Driver download failed
-     */
-    DRIVER_DOWNLOAD_ERROR(50202, "error.driver.download"),
-
-    /**
-     * Driver version not supported
-     */
-    DRIVER_VERSION_NOT_SUPPORTED(50203, "error.driver.version.not.supported"),
-
-    /**
-     * Driver file corrupted
-     */
-    DRIVER_FILE_CORRUPTED(50204, "error.driver.file.corrupted"),
-
-    // ==================== SQL Execution (50300-50399) ====================
-
-    /**
-     * SQL syntax error
-     */
-    SQL_SYNTAX_ERROR(50300, "error.sql.syntax"),
-
-    /**
-     * SQL execution failed
-     */
-    SQL_EXECUTION_ERROR(50301, "error.sql.execution"),
-
-    /**
-     * SQL execution timeout
-     */
-    SQL_TIMEOUT_ERROR(50302, "error.sql.timeout"),
-
-    /**
-     * Transaction commit failed
-     */
-    TRANSACTION_COMMIT_ERROR(50303, "error.transaction.commit"),
-
-    /**
-     * Transaction rollback failed
-     */
-    TRANSACTION_ROLLBACK_ERROR(50304, "error.transaction.rollback"),
-
-    // ==================== Plugin (50400-50499) ====================
-
-    /**
-     * Plugin not found
-     */
-    PLUGIN_NOT_FOUND(50400, "error.plugin.not.found"),
-
-    /**
-     * Plugin loading failed
-     */
-    PLUGIN_LOAD_ERROR(50401, "error.plugin.load"),
-
-    /**
-     * Plugin does not support this feature
-     */
-    PLUGIN_NOT_SUPPORT(50402, "error.plugin.not.support"),
-
-    /**
-     * Plugin initialization failed
-     */
-    PLUGIN_INIT_ERROR(50403, "error.plugin.init"),
-
-    // ==================== File Operation (50500-50599) ====================
-
-    /**
-     * File not found
-     */
-    FILE_NOT_FOUND(50500, "error.file.not.found"),
-
-    /**
-     * File reading failed
-     */
-    FILE_READ_ERROR(50501, "error.file.read"),
-
-    /**
-     * File writing failed
-     */
-    FILE_WRITE_ERROR(50502, "error.file.write"),
-
-    /**
-     * File deletion failed
-     */
-    FILE_DELETE_ERROR(50503, "error.file.delete"),
-
-    /**
-     * File format not supported
-     */
-    FILE_FORMAT_NOT_SUPPORTED(50504, "error.file.format.not.supported"),
-
-    /**
-     * File size exceeded limit
-     */
-    FILE_SIZE_EXCEEDED(50505, "error.file.size.exceeded"),
-
-    // ==================== Data Validation (50600-50699) ====================
-
-    /**
-     * Data validation failed
-     */
-    VALIDATION_ERROR(50600, "error.validation"),
-
-    /**
-     * Required field is empty
-     */
-    REQUIRED_FIELD_EMPTY(50601, "error.required.field.empty"),
-
-    /**
-     * Field format error
-     */
-    FIELD_FORMAT_ERROR(50602, "error.field.format"),
-
-    /**
-     * Field length exceeded limit
-     */
-    FIELD_LENGTH_EXCEEDED(50603, "error.field.length.exceeded"),
-
-    /**
-     * Field value out of range
-     */
-    FIELD_VALUE_OUT_OF_RANGE(50604, "error.field.value.out.of.range");
-
-    /**
-     * Status code
-     */
     private final int code;
-
-    /**
-     * I18n message key
-     */
     private final String messageKey;
 
     ErrorCode(int code, String messageKey) {
@@ -234,10 +71,6 @@ public enum ErrorCode {
         this.messageKey = messageKey;
     }
 
-    /**
-     * Get i18n message key
-     * Compatible with old code using getMessage()
-     */
     public String getMessage() {
         return messageKey;
     }

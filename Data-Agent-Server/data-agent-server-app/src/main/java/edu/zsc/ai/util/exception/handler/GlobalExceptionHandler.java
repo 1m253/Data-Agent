@@ -1,5 +1,8 @@
 package edu.zsc.ai.util.exception.handler;
 
+import cn.dev33.satoken.exception.NotLoginException;
+import cn.dev33.satoken.exception.NotPermissionException;
+import cn.dev33.satoken.exception.NotRoleException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -88,6 +91,42 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ApiResponse.error(ErrorCode.SYSTEM_ERROR, systemError + ": " + e.getMessage()));
+    }
+
+    /**
+     * Handle SaToken not login exception (token expired, not logged in, etc.)
+     */
+    @ExceptionHandler(NotLoginException.class)
+    public ResponseEntity<ApiResponse<Void>> handleNotLoginException(NotLoginException e) {
+        log.warn("Not logged in: {}", e.getMessage());
+        String message = i18nUtils.getMessage("error.not.login");
+        return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
+                .body(ApiResponse.error(ErrorCode.NOT_LOGIN_ERROR, message));
+    }
+
+    /**
+     * Handle SaToken not role exception
+     */
+    @ExceptionHandler(NotRoleException.class)
+    public ResponseEntity<ApiResponse<Void>> handleNotRoleException(NotRoleException e) {
+        log.warn("Not role: {}", e.getMessage());
+        String message = i18nUtils.getMessage("error.no.auth");
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
+                .body(ApiResponse.error(ErrorCode.NO_AUTH_ERROR, message));
+    }
+
+    /**
+     * Handle SaToken not permission exception
+     */
+    @ExceptionHandler(NotPermissionException.class)
+    public ResponseEntity<ApiResponse<Void>> handleNotPermissionException(NotPermissionException e) {
+        log.warn("Not permission: {}", e.getMessage());
+        String message = i18nUtils.getMessage("error.no.auth");
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
+                .body(ApiResponse.error(ErrorCode.NO_AUTH_ERROR, message));
     }
 }
 
