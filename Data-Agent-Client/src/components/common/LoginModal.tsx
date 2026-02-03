@@ -2,10 +2,12 @@ import { useState } from "react";
 import { Button } from "../ui/Button";
 import { Input } from "../ui/Input";
 import { DialogContent, DialogDescription, DialogHeader, DialogTitle } from "../ui/Dialog";
-import { Github } from "lucide-react";
+import { Github, Eye, EyeOff } from "lucide-react";
 import { authService } from "../../services/auth.service";
 import { Alert } from "../ui/Alert";
 import { useAuthStore } from "../../store/authStore";
+import { resolveErrorMessage } from "../../lib/errorMessage";
+import { useTranslation } from "react-i18next";
 
 interface LoginModalProps {
     onSwitchToRegister: () => void;
@@ -13,14 +15,17 @@ interface LoginModalProps {
 }
 
 export function LoginModal({ onSwitchToRegister, onClose }: LoginModalProps) {
+    const { t } = useTranslation();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
     const [rememberMe, setRememberMe] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const { setAuth } = useAuthStore();
 
-    const handleLogin = async () => {
+    const handleLogin = async (e?: React.FormEvent) => {
+        e?.preventDefault();
         try {
             setError(null);
             setLoading(true);
@@ -29,7 +34,7 @@ export function LoginModal({ onSwitchToRegister, onClose }: LoginModalProps) {
             onClose(); // Close modal after successful login
         } catch (error) {
             console.error("Login failed", error);
-            setError("Login failed. Please check your credentials.");
+            setError(resolveErrorMessage(error, t('auth.login_failed')));
         } finally {
             setLoading(false);
         }
@@ -38,35 +43,52 @@ export function LoginModal({ onSwitchToRegister, onClose }: LoginModalProps) {
     return (
         <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
-                <DialogTitle className="text-2xl text-center">Login</DialogTitle>
+                <DialogTitle className="text-2xl text-center">{t('auth.login')}</DialogTitle>
                 <DialogDescription className="text-center">
-                    Enter your email and password to access your account
+                    {t('auth.login_desc')}
                 </DialogDescription>
             </DialogHeader>
-            <div className="grid gap-4 py-4">
+            <form onSubmit={handleLogin} className="grid gap-4 py-4">
                 {error && (
                     <Alert variant="destructive">
                         {error}
                     </Alert>
                 )}
                 <div className="grid gap-2">
-                    <label htmlFor="email" className="text-sm font-medium text-foreground">Email</label>
+                    <label htmlFor="email" className="text-sm font-medium text-foreground">{t('auth.email')}</label>
                     <Input
                         id="email"
                         type="email"
-                        placeholder="m@example.com"
+                        placeholder={t('auth.email_placeholder')}
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
+                        autoComplete="email"
                     />
                 </div>
                 <div className="grid gap-2">
-                    <label htmlFor="password" className="text-sm font-medium text-foreground">Password</label>
-                    <Input
-                        id="password"
-                        type="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                    />
+                    <label htmlFor="password" className="text-sm font-medium text-foreground">{t('auth.password')}</label>
+                    <div className="relative">
+                        <Input
+                            id="password"
+                            type={showPassword ? "text" : "password"}
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            autoComplete="current-password"
+                            className="pr-10"
+                        />
+                        <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                            aria-label={showPassword ? t('auth.hide_password') : t('auth.show_password')}
+                        >
+                            {showPassword ? (
+                                <EyeOff className="h-4 w-4" />
+                            ) : (
+                                <Eye className="h-4 w-4" />
+                            )}
+                        </button>
+                    </div>
                 </div>
                 <div className="flex items-center space-x-2">
                     <input
@@ -80,11 +102,11 @@ export function LoginModal({ onSwitchToRegister, onClose }: LoginModalProps) {
                         htmlFor="remember"
                         className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-foreground"
                     >
-                        Remember me
+                        {t('auth.remember_me')}
                     </label>
                 </div>
-                <Button className="w-full" onClick={handleLogin} disabled={loading}>
-                    {loading ? "Signing In..." : "Sign In"}
+                <Button type="submit" className="w-full" disabled={loading}>
+                    {loading ? t('auth.signing_in') : t('auth.sign_in')}
                 </Button>
                 <div className="relative">
                     <div className="absolute inset-0 flex items-center">
@@ -92,7 +114,7 @@ export function LoginModal({ onSwitchToRegister, onClose }: LoginModalProps) {
                     </div>
                     <div className="relative flex justify-center text-xs uppercase">
                         <span className="bg-background px-2 text-muted-foreground">
-                            Or continue with
+                            {t('auth.or_continue_with')}
                         </span>
                     </div>
                 </div>
@@ -130,11 +152,11 @@ export function LoginModal({ onSwitchToRegister, onClose }: LoginModalProps) {
                         Google
                     </Button>
                 </div>
-            </div>
+            </form>
             <div className="text-sm text-center text-muted-foreground">
-                Don't have an account?{" "}
+                {t('auth.no_account')}{" "}
                 <button className="text-primary hover:underline" onClick={onSwitchToRegister}>
-                    Sign up
+                    {t('auth.sign_up')}
                 </button>
             </div>
         </DialogContent>
