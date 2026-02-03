@@ -1,7 +1,6 @@
 package edu.zsc.ai.plugin.capability;
 
-import edu.zsc.ai.plugin.annotation.CapabilityMarker;
-import edu.zsc.ai.plugin.enums.CapabilityEnum;
+import edu.zsc.ai.plugin.connection.ConnectionConfig;
 import edu.zsc.ai.plugin.model.command.view.ViewCommandRequest;
 import edu.zsc.ai.plugin.model.command.view.ViewCommandResult;
 
@@ -9,7 +8,6 @@ import edu.zsc.ai.plugin.model.command.view.ViewCommandResult;
  * View provider capability interface.
  * Defines operations for managing database views.
  */
-@CapabilityMarker(CapabilityEnum.VIEW_PROVIDER)
 public interface ViewProvider {
 
     /**
@@ -66,7 +64,7 @@ public interface ViewProvider {
      *
      * @param connectionConfig database connection configuration
      */
-    default void setConnectionConfig(edu.zsc.ai.plugin.connection.ConnectionConfig connectionConfig) {
+    default void setConnectionConfig(ConnectionConfig connectionConfig) {
         // Default implementation does nothing - implementations can override if needed
     }
 }

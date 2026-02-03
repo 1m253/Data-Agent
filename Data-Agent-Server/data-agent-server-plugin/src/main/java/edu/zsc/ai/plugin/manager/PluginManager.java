@@ -2,25 +2,25 @@ package edu.zsc.ai.plugin.manager;
 
 import edu.zsc.ai.plugin.Plugin;
 import edu.zsc.ai.plugin.capability.ConnectionProvider;
+import edu.zsc.ai.plugin.capability.ViewProvider;
 import edu.zsc.ai.plugin.enums.DbType;
 import edu.zsc.ai.plugin.driver.MavenCoordinates;
 
 /**
- * Plugin Manager Static Facade
- * Provides static convenience methods that delegate to DefaultPluginManager singleton instance.
- * This class maintains backward compatibility with existing code that uses static methods.
- * 
- * For new code, consider using IPluginManager interface or DefaultPluginManager.getInstance() directly.
+ * Plugin Manager Utility Class
+ * Provides static methods to access plugin management functionality.
+ * Delegates to DefaultPluginManager singleton instance.
  *
  * @author Data-Agent
  * @since 0.0.1
  */
-public final class PluginManager {
+public class PluginManager {
 
-    private static final IPluginManager INSTANCE = DefaultPluginManager.getInstance();
-
-    private PluginManager() {
-        // Utility class, prevent instantiation
+    /**
+     * Get the underlying plugin manager instance
+     */
+    private static IPluginManager getPluginManager() {
+        return DefaultPluginManager.getInstance();
     }
 
     // ========== Plugin Query ==========
@@ -32,7 +32,7 @@ public final class PluginManager {
      * @return plugin instance, or null if not found
      */
     public static Plugin findPluginById(String pluginId) {
-        return INSTANCE.findPluginById(pluginId);
+        return getPluginManager().findPluginById(pluginId);
     }
 
     // ========== Plugin Selection ==========
@@ -46,13 +46,12 @@ public final class PluginManager {
      * @throws IllegalArgumentException if no plugin available for the database type
      */
     public static Plugin selectFirstPluginByDbType(String dbTypeCode) {
-        return INSTANCE.selectFirstPluginByDbType(dbTypeCode);
+        return getPluginManager().selectFirstPluginByDbType(dbTypeCode);
     }
 
     /**
      * Select the most appropriate plugin for a database type based on database version.
      * Returns the plugin that best matches the database version.
-     * This method simplifies application layer code by eliminating the need to handle List selection logic.
      *
      * @param dbTypeCode      database type code (e.g., "mysql", "MYSQL")
      * @param databaseVersion actual database version from connection (e.g., "8.0.33")
@@ -60,7 +59,7 @@ public final class PluginManager {
      * @throws IllegalArgumentException if no plugin available for the database type
      */
     public static Plugin selectPluginByDbTypeAndVersion(String dbTypeCode, String databaseVersion) {
-        return INSTANCE.selectPluginByDbTypeAndVersion(dbTypeCode, databaseVersion);
+        return getPluginManager().selectPluginByDbTypeAndVersion(dbTypeCode, databaseVersion);
     }
 
     // ========== Capability Selection ==========
@@ -75,7 +74,7 @@ public final class PluginManager {
      * @throws IllegalArgumentException if no plugin with ConnectionProvider capability found
      */
     public static ConnectionProvider selectConnectionProviderByDbType(String dbTypeCode) {
-        return INSTANCE.selectConnectionProviderByDbType(dbTypeCode);
+        return getPluginManager().selectConnectionProviderByDbType(dbTypeCode);
     }
 
     /**
@@ -86,7 +85,33 @@ public final class PluginManager {
      * @throws IllegalArgumentException if plugin not found or doesn't implement ConnectionProvider
      */
     public static ConnectionProvider selectConnectionProviderByPluginId(String pluginId) {
-        return INSTANCE.selectConnectionProviderByPluginId(pluginId);
+        return getPluginManager().selectConnectionProviderByPluginId(pluginId);
+    }
+
+    // ========== View Provider Selection ==========
+
+    /**
+     * Select ViewProvider for a specific database type.
+     * Returns the first available plugin that implements ViewProvider capability.
+     * Plugins are ordered by version (newest first).
+     *
+     * @param dbTypeCode database type code (e.g., "mysql", "MYSQL")
+     * @return ViewProvider instance
+     * @throws IllegalArgumentException if no plugin with ViewProvider capability found
+     */
+    public static ViewProvider selectViewProviderByDbType(String dbTypeCode) {
+        return getPluginManager().selectViewProviderByDbType(dbTypeCode);
+    }
+
+    /**
+     * Select ViewProvider by plugin ID.
+     *
+     * @param pluginId plugin ID
+     * @return ViewProvider instance
+     * @throws IllegalArgumentException if plugin not found or doesn't implement ViewProvider
+     */
+    public static ViewProvider selectViewProviderByPluginId(String pluginId) {
+        return getPluginManager().selectViewProviderByPluginId(pluginId);
     }
 
     // ========== Driver Management ==========
@@ -97,83 +122,10 @@ public final class PluginManager {
      *
      * @param dbType database type
      * @param driverVersion driver version (nullable)
-     * @return Maven coordinates, or null if no plugin supports the version
+     * @return Maven coordinates
+     * @throws IllegalArgumentException if no plugin supports the version or database type not found
      */
     public static MavenCoordinates findDriverMavenCoordinates(DbType dbType, String driverVersion) {
-        return INSTANCE.findDriverMavenCoordinates(dbType, driverVersion);
-    }
-
-    // ========== Deprecated Methods ==========
-
-    /**
-     * @deprecated Use {@link #findPluginById(String)} instead
-     */
-    @Deprecated
-    public static Plugin getPlugin(String pluginId) {
-        return findPluginById(pluginId);
-    }
-
-    /**
-     * @deprecated Use {@link #selectConnectionProviderByDbType(String)} instead
-     */
-    @Deprecated
-    public static ConnectionProvider getConnectionProvider(String dbTypeCode) {
-        return selectConnectionProviderByDbType(dbTypeCode);
-    }
-
-    /**
-     * @deprecated Use {@link #selectConnectionProviderByPluginId(String)} instead
-     */
-    @Deprecated
-    public static ConnectionProvider getConnectionProviderByPluginId(String pluginId) {
-        return selectConnectionProviderByPluginId(pluginId);
-    }
-
-    /**
-     * @deprecated Use {@link #selectFirstPluginByDbType(String)} instead
-     */
-    @Deprecated
-    public static Plugin selectPluginForDbType(String dbTypeCode) {
-        return selectFirstPluginByDbType(dbTypeCode);
-    }
-
-    /**
-     * @deprecated Use {@link #selectFirstPluginByDbType(String)} instead
-     */
-    @Deprecated
-    public static Plugin selectPluginByDbType(String dbTypeCode) {
-        return selectFirstPluginByDbType(dbTypeCode);
-    }
-
-    /**
-     * @deprecated Use {@link #selectFirstPluginByDbType(String)} instead
-     */
-    @Deprecated
-    public static Plugin selectNewestPluginByDbType(String dbTypeCode) {
-        return selectFirstPluginByDbType(dbTypeCode);
-    }
-
-    /**
-     * @deprecated Use {@link #selectPluginByDbTypeAndVersion(String, String)} instead
-     */
-    @Deprecated
-    public static Plugin selectPluginForDbType(String dbTypeCode, String databaseVersion) {
-        return selectPluginByDbTypeAndVersion(dbTypeCode, databaseVersion);
-    }
-
-    /**
-     * @deprecated Use {@link #selectPluginByDbTypeAndVersion(String, String)} instead
-     */
-    @Deprecated
-    public static Plugin selectPluginByDbVersion(String dbTypeCode, String databaseVersion) {
-        return selectPluginByDbTypeAndVersion(dbTypeCode, databaseVersion);
-    }
-
-    /**
-     * @deprecated Use {@link #findDriverMavenCoordinates(DbType, String)} instead
-     */
-    @Deprecated
-    public static MavenCoordinates getDriverMavenCoordinates(DbType dbType, String driverVersion) {
-        return findDriverMavenCoordinates(dbType, driverVersion);
+        return getPluginManager().findDriverMavenCoordinates(dbType, driverVersion);
     }
 }
