@@ -1,6 +1,6 @@
 package edu.zsc.ai.plugin.base;
 
-import edu.zsc.ai.plugin.Plugin;
+import edu.zsc.ai.plugin.SqlPlugin;
 import edu.zsc.ai.plugin.annotation.PluginInfo;
 import edu.zsc.ai.plugin.enums.DbType;
 import edu.zsc.ai.plugin.enums.PluginType;
@@ -11,7 +11,7 @@ import edu.zsc.ai.plugin.enums.PluginType;
  * Provides default implementation for metadata methods by reading {@link PluginInfo} annotation.
  * Subclasses only need to add {@link PluginInfo} annotation and implement business logic.
  */
-public abstract class AbstractDatabasePlugin implements Plugin {
+public abstract class AbstractDatabasePlugin implements SqlPlugin {
     
     /**
      * Plugin metadata from annotation

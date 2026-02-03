@@ -1,6 +1,5 @@
 package edu.zsc.ai.plugin.mysql;
 
-import edu.zsc.ai.plugin.SqlPlugin;
 import edu.zsc.ai.plugin.base.AbstractDatabasePlugin;
 import edu.zsc.ai.plugin.capability.CommandExecutor;
 import edu.zsc.ai.plugin.capability.ConnectionProvider;
@@ -25,7 +24,7 @@ import java.util.logging.Logger;
  * Implements ConnectionProvider and CommandExecutor capabilities for all MySQL plugins.
  */
 public abstract class AbstractMysqlPlugin extends AbstractDatabasePlugin
-        implements SqlPlugin, ConnectionProvider, CommandExecutor<SqlCommandRequest, SqlCommandResult> {
+        implements ConnectionProvider, CommandExecutor<SqlCommandRequest, SqlCommandResult> {
 
     private static final Logger logger = Logger.getLogger(AbstractMysqlPlugin.class.getName());
 
@@ -39,6 +38,11 @@ public abstract class AbstractMysqlPlugin extends AbstractDatabasePlugin
      */
     private final MySQLSqlExecutor sqlExecutor = new MySQLSqlExecutor();
     
+    @Override
+    public boolean supportSchema() {
+        return false; // MySQL: DATABASE and SCHEMA are synonyms, no separate schema namespace
+    }
+
     /**
      * Get MySQL-specific JDBC driver class name.
      * Different MySQL versions may use different driver classes.
