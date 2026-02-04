@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { DbConnection } from '../types/connection';
-import { connectionService } from '../services/connection.service';
+import type { DbTypeOption } from '../types/dbType';
+import { dbTypeService } from '../services/dbType.service';
 
 export type TabType = 'file' | 'table';
 // ... (rest of imports/types)
@@ -34,9 +34,9 @@ interface WorkspaceState extends PreferenceState {
     tabs: Tab[];
     activeTabId: string | null;
     isSettingsModalOpen: boolean;
-    connections: DbConnection[];
-    isConnectionsLoading: boolean;
-    
+    supportedDbTypes: DbTypeOption[];
+    supportedDbTypesLoading: boolean;
+
     // Actions
     openTab: (tab: Omit<Tab, 'active'>) => void;
     closeTab: (id: string) => void;
@@ -45,7 +45,7 @@ interface WorkspaceState extends PreferenceState {
     setSettingsModalOpen: (open: boolean) => void;
     updatePreferences: (prefs: Partial<PreferenceState>) => void;
     resetPreferences: () => void;
-    fetchConnections: (force?: boolean) => Promise<void>;
+    fetchSupportedDbTypes: () => Promise<void>;
 }
 
 const DEFAULT_PREFERENCES: PreferenceState = {
@@ -65,8 +65,8 @@ export const useWorkspaceStore = create<WorkspaceState>()(
             tabs: [],
             activeTabId: null,
             isSettingsModalOpen: false,
-            connections: [],
-            isConnectionsLoading: false,
+            supportedDbTypes: [],
+            supportedDbTypesLoading: false,
 
             openTab: (newTab) => set((state) => {
                 const existingTab = state.tabs.find(t => t.id === newTab.id);
@@ -111,19 +111,17 @@ export const useWorkspaceStore = create<WorkspaceState>()(
 
             resetPreferences: () => set((state) => ({ ...state, ...DEFAULT_PREFERENCES })),
 
-            fetchConnections: async (force = false) => {
+            fetchSupportedDbTypes: async () => {
                 const state = get();
-                if (state.isConnectionsLoading) return;
-                if (!force && state.connections.length > 0) return;
-
-                set({ isConnectionsLoading: true });
+                if (state.supportedDbTypesLoading || state.supportedDbTypes.length > 0) return;
+                set({ supportedDbTypesLoading: true });
                 try {
-                    const data = await connectionService.getConnections();
-                    set({ connections: data || [] });
+                    const data = await dbTypeService.getSupportedDbTypes();
+                    set({ supportedDbTypes: data || [] });
                 } catch (error) {
-                    console.error('Failed to fetch connections:', error);
+                    console.error('Failed to fetch supported db types:', error);
                 } finally {
-                    set({ isConnectionsLoading: false });
+                    set({ supportedDbTypesLoading: false });
                 }
             },
         }),

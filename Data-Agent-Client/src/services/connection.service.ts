@@ -1,59 +1,72 @@
 import http from '../lib/http';
-import { DbConnection, CreateConnectionRequest, TestConnectionRequest } from '../types/connection';
+import {
+  DbConnection,
+  ConnectionCreateRequest,
+  ConnectRequest,
+  ConnectionTestResponse,
+  OpenConnectionResponse,
+} from '../types/connection';
 
 export const connectionService = {
-    /**
-     * List all connections
-     */
-    getConnections: async (): Promise<DbConnection[]> => {
-        const response = await http.get<DbConnection[]>('/connections');
-        return response.data;
-    },
+  /**
+   * List all connection configs
+   */
+  getConnections: async (): Promise<DbConnection[]> => {
+    const response = await http.get<DbConnection[]>('/connections');
+    return response.data;
+  },
 
-    /**
-     * Get connection by ID
-     */
-    getConnectionById: async (id: number): Promise<DbConnection> => {
-        const response = await http.get<DbConnection>(`/connections/${id}`);
-        return response.data;
-    },
+  /**
+   * Get connection config by ID
+   */
+  getConnectionById: async (id: number): Promise<DbConnection> => {
+    const response = await http.get<DbConnection>(`/connections/${id}`);
+    return response.data;
+  },
 
-    /**
-     * Create a new connection
-     */
-    createConnection: async (data: CreateConnectionRequest): Promise<DbConnection> => {
-        const response = await http.post<DbConnection>('/connections/create', data);
-        return response.data;
-    },
+  /**
+   * Create a new connection config
+   */
+  createConnection: async (data: ConnectionCreateRequest): Promise<DbConnection> => {
+    const response = await http.post<DbConnection>('/connections/create', data);
+    return response.data;
+  },
 
-    /**
-     * Update connection
-     */
-    updateConnection: async (id: number, data: CreateConnectionRequest): Promise<DbConnection> => {
-        const response = await http.put<DbConnection>(`/connections/${id}`, data);
-        return response.data;
-    },
+  /**
+   * Update connection config
+   */
+  updateConnection: async (id: number, data: ConnectionCreateRequest): Promise<DbConnection> => {
+    const response = await http.put<DbConnection>(`/connections/${id}`, data);
+    return response.data;
+  },
 
-    /**
-     * Delete connection
-     */
-    deleteConnection: async (id: number): Promise<void> => {
-        await http.delete(`/connections/${id}`);
-    },
+  /**
+   * Delete connection config
+   */
+  deleteConnection: async (id: number): Promise<void> => {
+    await http.delete(`/connections/${id}`);
+  },
 
-    /**
-     * Test connection
-     */
-    testConnection: async (data: TestConnectionRequest): Promise<boolean> => {
-        const response = await http.post<boolean>('/connections/test', data);
-        return response.data;
-    },
+  /**
+   * Test connection without persisting. Returns detailed test result.
+   */
+  testConnection: async (data: ConnectRequest): Promise<ConnectionTestResponse> => {
+    const response = await http.post<ConnectionTestResponse>('/connections/test', data);
+    return response.data;
+  },
 
-    /**
-     * Open a persistent connection
-     */
-    openConnection: async (id: number): Promise<string> => {
-        const response = await http.post<{ connectionId: string }>('/connections/open', { id });
-        return response.data.connectionId;
-    }
+  /**
+   * Open a persistent connection. Use the returned connectionId for listDatabases/listSchemas.
+   */
+  openConnection: async (request: ConnectRequest): Promise<OpenConnectionResponse> => {
+    const response = await http.post<OpenConnectionResponse>('/connections/open', request);
+    return response.data;
+  },
+
+  /**
+   * Close an active connection by its connectionId.
+   */
+  closeConnection: async (connectionId: string): Promise<void> => {
+    await http.delete(`/connections/active/${encodeURIComponent(connectionId)}`);
+  },
 };
