@@ -65,6 +65,11 @@ function App() {
     // 处理 OAuth 登录回调：从 URL 读取 token 同步到 authStore
     useOAuthCallbackFromUrl();
 
+    // 启动时拉取支持的数据库类型，供新建连接等使用
+    useEffect(() => {
+        useWorkspaceStore.getState().fetchSupportedDbTypes();
+    }, []);
+
     const handleSwitchToRegister = () => {
         setModalType("register");
     };
