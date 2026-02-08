@@ -3,7 +3,7 @@ package edu.zsc.ai.domain.service.db.impl;
 import edu.zsc.ai.common.constant.ResponseCode;
 import edu.zsc.ai.common.constant.ResponseMessageKey;
 import edu.zsc.ai.common.converter.db.ConnectionConverter;
-import edu.zsc.ai.common.enums.db.ConnectionTestStatus;
+import edu.zsc.ai.common.enums.db.ConnectionTestStatuEnum;
 import edu.zsc.ai.domain.model.dto.request.db.ConnectRequest;
 import edu.zsc.ai.domain.model.dto.response.db.ConnectionTestResponse;
 import edu.zsc.ai.domain.model.entity.db.DbConnection;
@@ -56,7 +56,7 @@ public class ConnectionServiceImpl implements ConnectionService {
             String driverInfo = provider.getDriverInfo(connection);
 
             return ConnectionTestResponse.builder()
-                    .status(ConnectionTestStatus.SUCCEEDED)
+                    .status(ConnectionTestStatuEnum.SUCCEEDED)
                     .dbmsInfo(dbmsInfo)
                     .driverInfo(driverInfo)
                     .ping(ping)

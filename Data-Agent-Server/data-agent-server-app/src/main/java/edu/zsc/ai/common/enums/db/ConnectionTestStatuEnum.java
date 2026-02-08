@@ -6,7 +6,7 @@ package edu.zsc.ai.common.enums.db;
  * @author Data-Agent
  * @since 0.0.1
  */
-public enum ConnectionTestStatus {
+public enum ConnectionTestStatuEnum {
 
     /**
      * Connection test succeeded

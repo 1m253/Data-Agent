@@ -1,7 +1,7 @@
 package edu.zsc.ai.model;
 
-import edu.zsc.ai.common.enums.ai.TodoPriority;
-import edu.zsc.ai.common.enums.ai.TodoStatus;
+import edu.zsc.ai.common.enums.ai.TodoPriorityEnum;
+import edu.zsc.ai.common.enums.ai.TodoStatusEnum;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -33,13 +33,13 @@ public class Todo {
      * Todo Status: NOT_STARTED, IN_PROGRESS, PAUSED, COMPLETED
      */
     @Builder.Default
-    private String status = TodoStatus.NOT_STARTED.name();
+    private String status = TodoStatusEnum.NOT_STARTED.name();
     
     /**
      * Todo Priority: LOW, MEDIUM, HIGH
      */
     @Builder.Default
-    private String priority = TodoPriority.MEDIUM.name();
+    private String priority = TodoPriorityEnum.MEDIUM.name();
     
     /**
      * Created Time

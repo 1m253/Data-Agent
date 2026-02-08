@@ -26,8 +26,6 @@ public class AiMessage {
 
     private String role;
 
-    private String content;
-
     private Integer tokenCount;
 
     private Short status;

@@ -1,5 +1,6 @@
 package edu.zsc.ai.domain.model.dto.response.agent;
 
+import edu.zsc.ai.common.enums.ai.MessageBlockEnum;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -19,7 +20,7 @@ public class ChatResponseBlock {
 
     public static ChatResponseBlock text(String content) {
         return ChatResponseBlock.builder()
-                .type(ChatResponseBlockType.TEXT.name())
+                .type(MessageBlockEnum.TEXT.name())
                 .content(content)
                 .done(false)
                 .build();
@@ -27,7 +28,7 @@ public class ChatResponseBlock {
 
     public static ChatResponseBlock thought(String content) {
         return ChatResponseBlock.builder()
-                .type(ChatResponseBlockType.THOUGHT.name())
+                .type(MessageBlockEnum.THOUGHT.name())
                 .content(content)
                 .done(false)
                 .build();
@@ -35,7 +36,7 @@ public class ChatResponseBlock {
 
     public static ChatResponseBlock toolCall(String toolName, String arguments) {
         return ChatResponseBlock.builder()
-                .type(ChatResponseBlockType.TOOL_CALL.name())
+                .type(MessageBlockEnum.TOOL_CALL.name())
                 .toolName(toolName)
                 .toolArguments(arguments)
                 .done(false)
@@ -44,16 +45,10 @@ public class ChatResponseBlock {
 
     public static ChatResponseBlock toolResult(String result) {
         return ChatResponseBlock.builder()
-                .type(ChatResponseBlockType.TOOL_RESULT.name())
+                .type(MessageBlockEnum.TOOL_RESULT.name())
                 .toolResult(result)
                 .done(false)
                 .build();
     }
 
-    public static ChatResponseBlock done() {
-        return ChatResponseBlock.builder()
-                .type(ChatResponseBlockType.DONE.name())
-                .done(true)
-                .build();
-    }
 }

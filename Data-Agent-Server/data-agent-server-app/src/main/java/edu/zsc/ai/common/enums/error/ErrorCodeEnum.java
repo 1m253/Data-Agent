@@ -6,7 +6,7 @@ import lombok.Getter;
  * Custom error codes (3-digit format for simplicity)
  */
 @Getter
-public enum ErrorCode {
+public enum ErrorCodeEnum {
 
     // ==================== Common (200) ====================
     SUCCESS(200, "common.success"),
@@ -66,7 +66,7 @@ public enum ErrorCode {
     private final int code;
     private final String messageKey;
 
-    ErrorCode(int code, String messageKey) {
+    ErrorCodeEnum(int code, String messageKey) {
         this.code = code;
         this.messageKey = messageKey;
     }

@@ -1,6 +1,9 @@
 package edu.zsc.ai.common.enums.ai;
 
-public enum ModelContextLimit {
+import lombok.Getter;
+
+@Getter
+public enum ModelContextLimitEnum {
 
     QWEN3_MAX("qwen3-max", 256000, 230000);
 
@@ -8,26 +11,14 @@ public enum ModelContextLimit {
     private final int maxContextTokens;
     private final int memoryThreshold;
 
-    ModelContextLimit(String modelName, int maxContextTokens, int memoryThreshold) {
+    ModelContextLimitEnum(String modelName, int maxContextTokens, int memoryThreshold) {
         this.modelName = modelName;
         this.maxContextTokens = maxContextTokens;
         this.memoryThreshold = memoryThreshold;
     }
 
-    public String getModelName() {
-        return modelName;
-    }
-
-    public int getMaxContextTokens() {
-        return maxContextTokens;
-    }
-
-    public int getMemoryThreshold() {
-        return memoryThreshold;
-    }
-
-    public static ModelContextLimit fromModelName(String modelName) {
-        for (ModelContextLimit limit : values()) {
+    public static ModelContextLimitEnum fromModelName(String modelName) {
+        for (ModelContextLimitEnum limit : values()) {
             if (limit.modelName.equalsIgnoreCase(modelName)) {
                 return limit;
             }

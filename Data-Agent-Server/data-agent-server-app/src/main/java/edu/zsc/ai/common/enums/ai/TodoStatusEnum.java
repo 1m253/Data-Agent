@@ -1,7 +1,7 @@
 package edu.zsc.ai.common.enums.ai;
 
 
-public enum TodoStatus {
+public enum TodoStatusEnum {
     NOT_STARTED,
     IN_PROGRESS,
     PAUSED,

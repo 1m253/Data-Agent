@@ -1,12 +1,10 @@
 package edu.zsc.ai.domain.service.agent.impl;
 
 import dev.langchain4j.agent.tool.ToolExecutionRequest;
-import dev.langchain4j.model.chat.response.ChatResponse;
 import dev.langchain4j.service.TokenStream;
-import dev.langchain4j.service.tool.ToolExecution;
 import edu.zsc.ai.agent.SqlAgent;
 import edu.zsc.ai.domain.model.dto.response.agent.ChatResponseBlock;
-import edu.zsc.ai.domain.model.dto.response.agent.ChatResponseBlockType;
+import edu.zsc.ai.common.enums.ai.MessageBlockEnum;
 import edu.zsc.ai.domain.service.agent.ChatService;
 import edu.zsc.ai.model.request.ChatRequest;
 import lombok.RequiredArgsConstructor;
@@ -39,7 +37,7 @@ public class ChatServiceImpl implements ChatService {
             if (response.aiMessage().hasToolExecutionRequests()) {
                 for (ToolExecutionRequest toolRequest : response.aiMessage().toolExecutionRequests()) {
                     ChatResponseBlock block = ChatResponseBlock.builder()
-                            .type(ChatResponseBlockType.TOOL_CALL.name())
+                            .type(MessageBlockEnum.TOOL_CALL.name())
                             .toolName(toolRequest.name())
                             .toolArguments(toolRequest.arguments())
                             .done(false)
@@ -51,7 +49,7 @@ public class ChatServiceImpl implements ChatService {
 
         tokenStream.onToolExecuted(toolExecution -> {
             ChatResponseBlock block = ChatResponseBlock.builder()
-                    .type(ChatResponseBlockType.TOOL_RESULT.name())
+                    .type(MessageBlockEnum.TOOL_RESULT.name())
                     .toolName(toolExecution.request().name())
                     .toolResult(toolExecution.result())
                     .done(false)

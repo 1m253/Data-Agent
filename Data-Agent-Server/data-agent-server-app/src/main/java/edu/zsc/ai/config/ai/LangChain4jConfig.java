@@ -3,7 +3,7 @@ package edu.zsc.ai.config.ai;
 import dev.langchain4j.memory.chat.ChatMemoryProvider;
 import dev.langchain4j.memory.chat.TokenWindowChatMemory;
 import dev.langchain4j.model.TokenCountEstimator;
-import edu.zsc.ai.common.enums.ai.ModelContextLimit;
+import edu.zsc.ai.common.enums.ai.ModelContextLimitEnum;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,7 +24,7 @@ public class LangChain4jConfig {
     @Bean
     @ConditionalOnMissingBean
     public ChatMemoryProvider chatMemoryProvider() {
-        int memoryThreshold = ModelContextLimit.fromModelName(modelName).getMemoryThreshold();
+        int memoryThreshold = ModelContextLimitEnum.fromModelName(modelName).getMemoryThreshold();
         return memoryId -> TokenWindowChatMemory.builder()
                 .id(memoryId)
                 .maxTokens(memoryThreshold, tokenCountEstimator)
