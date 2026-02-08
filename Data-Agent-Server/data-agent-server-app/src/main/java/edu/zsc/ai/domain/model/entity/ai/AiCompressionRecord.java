@@ -28,8 +28,6 @@ public class AiCompressionRecord {
 
     private Long summaryMessageId;
 
-    private String compressionStrategy;
-
     private Integer tokenBefore;
 
     private Integer tokenAfter;

@@ -19,16 +19,15 @@ public class LangChain4jConfig {
     private final TokenCountEstimator tokenCountEstimator;
 
     @Value("${langchain4j.community.dashscope.streaming-chat-model.model-name:qwen3-max}")
-    private String modelName;
+    private String streamingModelName;
 
     @Bean
     @ConditionalOnMissingBean
     public ChatMemoryProvider chatMemoryProvider() {
-        int memoryThreshold = ModelContextLimitEnum.fromModelName(modelName).getMemoryThreshold();
+        int memoryThreshold = ModelContextLimitEnum.fromModelName(streamingModelName).getMemoryThreshold();
         return memoryId -> TokenWindowChatMemory.builder()
                 .id(memoryId)
                 .maxTokens(memoryThreshold, tokenCountEstimator)
-//                .chatMemoryStore(new CustomChatMemoryStore())
                 .build();
     }
 }
