@@ -25,7 +25,6 @@ public class AiMessageServiceImpl extends ServiceImpl<AiMessageMapper, AiMessage
         Long currentUserId = StpUtil.getLoginIdAsLong();
         LambdaQueryWrapper<AiMessage> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(AiMessage::getConversationId, conversationId)
-                .eq(AiMessage::getUserId, currentUserId)
                 .orderByAsc(AiMessage::getCreatedAt);
         return this.list(wrapper);
     }
@@ -38,8 +37,7 @@ public class AiMessageServiceImpl extends ServiceImpl<AiMessageMapper, AiMessage
         }
         Long currentUserId = StpUtil.getLoginIdAsLong();
         LambdaQueryWrapper<AiMessage> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(AiMessage::getConversationId, conversationId)
-                .eq(AiMessage::getUserId, currentUserId);
+        wrapper.eq(AiMessage::getConversationId, conversationId);
         this.remove(wrapper);
     }
 
@@ -53,7 +51,6 @@ public class AiMessageServiceImpl extends ServiceImpl<AiMessageMapper, AiMessage
         // 设置conversationId和userId
         messages.forEach(msg -> {
             msg.setConversationId(conversationId);
-            msg.setUserId(currentUserId);
         });
         return this.saveBatch(messages);
     }

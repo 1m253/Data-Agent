@@ -5,6 +5,6 @@ import dev.langchain4j.service.spring.AiService;
 import edu.zsc.ai.model.request.ChatRequest;
 
 @AiService
-public interface SqlAgent {
+public interface ReActAgent {
     TokenStream chat(ChatRequest request);
 }

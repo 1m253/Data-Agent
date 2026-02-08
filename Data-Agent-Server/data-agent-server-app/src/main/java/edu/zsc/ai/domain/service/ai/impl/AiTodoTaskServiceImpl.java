@@ -14,14 +14,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-/**
- * AiTodoTaskServiceImpl
- * Service implementation for AiTodoTask.
- * Integrates with TodoCache for performance.
- *
- * @author Data-Agent
- * @since 0.0.1
- */
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -41,7 +34,6 @@ public class AiTodoTaskServiceImpl extends ServiceImpl<AiTodoTaskMapper, AiTodoT
             log.debug("Cache hit for conversation: {}", conversationId);
             return AiTodoTask.builder()
                     .conversationId(conversationId)
-                    .userId(StpUtil.getLoginIdAsLong())
                     .content(JsonUtil.object2json(cachedList))
                     .build();
         }
@@ -50,8 +42,7 @@ public class AiTodoTaskServiceImpl extends ServiceImpl<AiTodoTaskMapper, AiTodoT
         log.debug("Cache miss for conversation: {}, loading from DB", conversationId);
         Long currentUserId = StpUtil.getLoginIdAsLong();
         LambdaQueryWrapper<AiTodoTask> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(AiTodoTask::getConversationId, conversationId)
-                .eq(AiTodoTask::getUserId, currentUserId);
+        queryWrapper.eq(AiTodoTask::getConversationId, conversationId);
         AiTodoTask task = this.getOne(queryWrapper);
 
         // 3. Update cache if found
@@ -69,8 +60,6 @@ public class AiTodoTaskServiceImpl extends ServiceImpl<AiTodoTaskMapper, AiTodoT
             return false;
         }
 
-        // Set current userId before saving
-        task.setUserId(StpUtil.getLoginIdAsLong());
 
         boolean success = this.save(task);
         if (success) {
@@ -87,9 +76,7 @@ public class AiTodoTaskServiceImpl extends ServiceImpl<AiTodoTaskMapper, AiTodoT
 
         Long currentUserId = StpUtil.getLoginIdAsLong();
         LambdaUpdateWrapper<AiTodoTask> updateWrapper = new LambdaUpdateWrapper<>();
-        updateWrapper.eq(AiTodoTask::getConversationId, task.getConversationId())
-                .eq(AiTodoTask::getUserId, currentUserId);
-        
+        updateWrapper.eq(AiTodoTask::getConversationId, task.getConversationId());
         boolean success = this.update(task, updateWrapper);
         if (success) {
             updateCache(task);
@@ -105,9 +92,7 @@ public class AiTodoTaskServiceImpl extends ServiceImpl<AiTodoTaskMapper, AiTodoT
 
         Long currentUserId = StpUtil.getLoginIdAsLong();
         LambdaQueryWrapper<AiTodoTask> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(AiTodoTask::getConversationId, conversationId)
-                .eq(AiTodoTask::getUserId, currentUserId);
-        
+        queryWrapper.eq(AiTodoTask::getConversationId, conversationId);
         boolean success = this.remove(queryWrapper);
         if (success) {
             todoCache.invalidate(conversationId);

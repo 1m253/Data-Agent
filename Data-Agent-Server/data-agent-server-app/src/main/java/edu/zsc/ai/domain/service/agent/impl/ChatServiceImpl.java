@@ -2,7 +2,7 @@ package edu.zsc.ai.domain.service.agent.impl;
 
 import dev.langchain4j.agent.tool.ToolExecutionRequest;
 import dev.langchain4j.service.TokenStream;
-import edu.zsc.ai.agent.SqlAgent;
+import edu.zsc.ai.agent.ReActAgent;
 import edu.zsc.ai.domain.model.dto.response.agent.ChatResponseBlock;
 import edu.zsc.ai.common.enums.ai.MessageBlockEnum;
 import edu.zsc.ai.domain.service.agent.ChatService;
@@ -18,13 +18,13 @@ import reactor.core.publisher.Sinks;
 @RequiredArgsConstructor
 public class ChatServiceImpl implements ChatService {
 
-    private final SqlAgent sqlAgent;
+    private final ReActAgent reActAgent;
 
     @Override
     public Flux<ChatResponseBlock> chat(ChatRequest request) {
         Sinks.Many<ChatResponseBlock> sink = Sinks.many().unicast().onBackpressureBuffer();
 
-        TokenStream tokenStream = sqlAgent.chat(request);
+        TokenStream tokenStream = reActAgent.chat(request);
 
         tokenStream.onPartialResponse(content -> {
             if (content != null && !content.isEmpty()) {
