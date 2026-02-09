@@ -121,7 +121,11 @@ export function useChat(options: UseChatOptions = {}): UseChatReturn {
           const lastMessage = messagesRef.current[messagesRef.current.length - 1];
           if (lastMessage?.role !== 'assistant') continue;
 
-          accumulatedContent += block.content ?? '';
+          if (block.conversationId != null) {
+            options.onConversationId?.(block.conversationId);
+          }
+
+          accumulatedContent += block.data ?? '';
           accumulatedBlocks.push(block);
 
           setMessages((prev) => {

@@ -12,25 +12,36 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ChatResponseBlock {
     private String type;
-    private String content;
+    private String data;
+    private Long conversationId;
     private String toolName;
     private String toolArguments;
     private String toolResult;
     private boolean done;
 
-    public static ChatResponseBlock text(String content) {
+    public static ChatResponseBlock text(String data) {
         return ChatResponseBlock.builder()
                 .type(MessageBlockEnum.TEXT.name())
-                .content(content)
+                .data(data)
                 .done(false)
                 .build();
     }
 
-    public static ChatResponseBlock thought(String content) {
+    public static ChatResponseBlock thought(String data) {
         return ChatResponseBlock.builder()
                 .type(MessageBlockEnum.THOUGHT.name())
-                .content(content)
+                .data(data)
                 .done(false)
+                .build();
+    }
+
+    /**
+     * End-of-stream block: done=true and optional conversationId for new sessions.
+     */
+    public static ChatResponseBlock doneBlock(Long conversationId) {
+        return ChatResponseBlock.builder()
+                .done(true)
+                .conversationId(conversationId)
                 .build();
     }
 

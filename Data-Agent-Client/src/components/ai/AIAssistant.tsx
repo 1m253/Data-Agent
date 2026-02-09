@@ -40,6 +40,7 @@ export function AIAssistant() {
       ...(chatContext.databaseName != null && chatContext.databaseName !== '' && { databaseName: chatContext.databaseName }),
       ...(chatContext.schemaName != null && chatContext.schemaName !== '' && { schemaName: chatContext.schemaName }),
     },
+    onConversationId: (id) => setCurrentConversationId(id),
     onFinish: (message) => {
       console.log('Stream finished:', message);
     },

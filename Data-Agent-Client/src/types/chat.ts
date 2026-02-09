@@ -13,8 +13,9 @@ export interface ChatRequest {
 }
 
 export interface ChatResponseBlock {
-  type: 'TEXT' | 'THOUGHT' | 'TOOL_CALL' | 'TOOL_RESULT';
-  content?: string;
+  type?: 'TEXT' | 'THOUGHT' | 'TOOL_CALL' | 'TOOL_RESULT';
+  data?: string;
+  conversationId?: number;
   toolName?: string;
   toolArguments?: string;
   toolResult?: string;
@@ -36,6 +37,7 @@ export interface UseChatOptions {
   onResponse?: (response: Response) => void;
   onFinish?: (message: ChatMessage) => void;
   onError?: (error: Error) => void;
+  onConversationId?: (id: number) => void;
   body?: Record<string, unknown>;
 }
 
