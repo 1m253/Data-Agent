@@ -4,6 +4,7 @@ import dev.langchain4j.agent.tool.P;
 import dev.langchain4j.agent.tool.Tool;
 import dev.langchain4j.invocation.InvocationParameters;
 import edu.zsc.ai.common.constant.RequestContextConstant;
+import edu.zsc.ai.common.constant.ToolMessageConstants;
 import edu.zsc.ai.domain.service.db.DatabaseService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,21 +26,22 @@ public class DatabaseTool {
     public String listDatabases(
             @P("The connection id (from session context or getMyConnections result)") Long connectionId,
             InvocationParameters parameters) {
-        log.info("[Tool before] listDatabases, connectionId={}", connectionId);
+        log.info("{} listDatabases, connectionId={}", ToolMessageConstants.TOOL_LOG_PREFIX_BEFORE, connectionId);
         try {
             Long userId = parameters.get(RequestContextConstant.USER_ID);
             if (userId == null) {
-                return "User context missing.";
+                return ToolMessageConstants.USER_CONTEXT_MISSING;
             }
             List<String> databases = databaseService.listDatabases(connectionId, userId);
             if (databases == null || databases.isEmpty()) {
-                log.info("[Tool done] listDatabases -> EMPTY: No databases found.");
-                return "EMPTY: No databases found.";
+                log.info("{} listDatabases -> {}", ToolMessageConstants.TOOL_LOG_PREFIX_DONE,
+                        ToolMessageConstants.EMPTY_NO_DATABASES);
+                return ToolMessageConstants.EMPTY_NO_DATABASES;
             }
-            log.info("[Tool done] listDatabases, result size={}", databases.size());
+            log.info("{} listDatabases, result size={}", ToolMessageConstants.TOOL_LOG_PREFIX_DONE, databases.size());
             return databases.toString();
         } catch (Exception e) {
-            log.error("[Tool error] listDatabases, connectionId={}", connectionId, e);
+            log.error("{} listDatabases, connectionId={}", ToolMessageConstants.TOOL_LOG_PREFIX_ERROR, connectionId, e);
             return e.getMessage();
         }
     }
