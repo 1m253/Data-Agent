@@ -32,6 +32,94 @@ async function refreshAccessToken(): Promise<TokenPairResponse | null> {
   }
 }
 
+interface ConsumeStreamOptions {
+  onConversationId?: (id: number) => void;
+  onFinish?: (message: ChatMessage) => void;
+}
+
+async function consumeStreamIntoLastAssistantMessage(
+  response: Response,
+  messagesRef: React.MutableRefObject<ChatMessage[]>,
+  setMessages: React.Dispatch<React.SetStateAction<ChatMessage[]>>,
+  options: ConsumeStreamOptions,
+  initialContent?: string,
+  initialBlocks?: ChatResponseBlock[]
+): Promise<void> {
+  let accumulatedContent = initialContent ?? '';
+  const accumulatedBlocks: ChatResponseBlock[] = initialBlocks ? [...initialBlocks] : [];
+
+  for await (const block of parseSSEResponse(response)) {
+    const lastMessage = messagesRef.current[messagesRef.current.length - 1];
+    if (lastMessage?.role !== MessageRole.ASSISTANT) continue;
+
+    if (block.conversationId != null) {
+      options.onConversationId?.(block.conversationId);
+    }
+
+    if (isContentBlockType(block.type)) {
+      accumulatedContent += block.data ?? '';
+    }
+    accumulatedBlocks.push(block);
+
+    setMessages((prev) => {
+      const updated = [...prev];
+      const last = updated[updated.length - 1];
+      if (last?.role !== 'assistant') return prev;
+      updated[updated.length - 1] = {
+        ...last,
+        content: accumulatedContent,
+        blocks: [...accumulatedBlocks],
+      };
+      return updated;
+    });
+
+    if (block.done) {
+      const last = messagesRef.current[messagesRef.current.length - 1];
+      options.onFinish?.({
+        ...last,
+        content: accumulatedContent,
+        blocks: accumulatedBlocks,
+      });
+      break;
+    }
+  }
+}
+
+async function fetchWithAuthRetry(
+  url: string,
+  body: object,
+  signal: AbortSignal,
+  retryCount = 0
+): Promise<Response> {
+  const token = await ensureValidAccessToken();
+  if (!token) throw new Error('Not authenticated');
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(body),
+    signal,
+  });
+
+  if (response.status === 401 && retryCount === 0) {
+    const tokens = await refreshAccessToken();
+    if (tokens) {
+      const { user, setAuth } = useAuthStore.getState();
+      setAuth(user, tokens.accessToken, tokens.refreshToken);
+      return fetchWithAuthRetry(url, body, signal, 1);
+    }
+    const { setAuth, openLoginModal } = useAuthStore.getState();
+    setAuth(null, null, null);
+    openLoginModal();
+    throw new Error('Session expired, please login again');
+  }
+
+  return response;
+}
+
 export function useChat(options: UseChatOptions = {}): UseChatReturn {
   const { api = DEFAULT_API } = options;
   const [messages, setMessages] = useState<ChatMessage[]>(options.initialMessages || []);
@@ -44,71 +132,32 @@ export function useChat(options: UseChatOptions = {}): UseChatReturn {
   const messagesRef = useRef(messages);
   messagesRef.current = messages;
 
-  const { user, setAuth, openLoginModal } = useAuthStore();
-
   const appendMessage = useCallback((message: ChatMessage) => {
     setMessages((prev) => [...prev, message]);
   }, []);
 
   const processStream = useCallback(
-    async (request: ChatRequest, retryCount = 0) => {
-      const token = await ensureValidAccessToken();
-      if (!token) {
-        submittingRef.current = false;
-        const err = new Error('Not authenticated');
-        setError(err);
-        options.onError?.(err);
-        return;
-      }
-
+    async (request: ChatRequest) => {
       abortControllerRef.current = new AbortController();
       setIsLoading(true);
       setError(undefined);
 
       try {
-        const response = await fetch(api, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(request),
-          signal: abortControllerRef.current.signal,
-        });
-
-        // Handle 401 - attempt token refresh
-        if (response.status === 401 && retryCount === 0) {
-          const tokens = await refreshAccessToken();
-          if (tokens) {
-            setAuth(user, tokens.accessToken, tokens.refreshToken);
-            // Retry with new token
-            await processStream(request, retryCount + 1);
-            return;
-          } else {
-            // Refresh failed - clear auth and show login modal
-            submittingRef.current = false;
-            setAuth(null, null, null);
-            openLoginModal();
-            const err = new Error('Session expired, please login again');
-            setError(err);
-            options.onError?.(err);
-            setIsLoading(false);
-            return;
-          }
-        }
+        const response = await fetchWithAuthRetry(
+          api,
+          request,
+          abortControllerRef.current.signal
+        );
 
         if (!response.ok) {
-          submittingRef.current = false;
           const err = new Error(`Stream request failed: ${response.status} ${response.statusText}`);
           setError(err);
           options.onError?.(err);
-          setIsLoading(false);
           return;
         }
 
         options.onResponse?.(response);
 
-        // Create assistant message placeholder
         const assistantMessage: ChatMessage = {
           id: crypto.randomUUID(),
           role: MessageRole.ASSISTANT,
@@ -118,44 +167,10 @@ export function useChat(options: UseChatOptions = {}): UseChatReturn {
         };
         appendMessage(assistantMessage);
 
-        // Accumulate in loop — ref/state may not update between chunks, so don't rely on lastMessage.content
-        let accumulatedContent = '';
-        const accumulatedBlocks: ChatResponseBlock[] = [];
-
-        for await (const block of parseSSEResponse(response)) {
-          const lastMessage = messagesRef.current[messagesRef.current.length - 1];
-          if (lastMessage?.role !== MessageRole.ASSISTANT) continue;
-
-          if (block.conversationId != null) {
-            options.onConversationId?.(block.conversationId);
-          }
-
-          if (isContentBlockType(block.type)) {
-            accumulatedContent += block.data ?? '';
-          }
-          accumulatedBlocks.push(block);
-
-          setMessages((prev) => {
-            const updated = [...prev];
-            const last = updated[updated.length - 1];
-            if (last?.role !== 'assistant') return prev;
-            updated[updated.length - 1] = {
-              ...last,
-              content: accumulatedContent,
-              blocks: [...accumulatedBlocks],
-            };
-            return updated;
-          });
-
-          if (block.done) {
-            options.onFinish?.({
-              ...lastMessage,
-              content: accumulatedContent,
-              blocks: accumulatedBlocks,
-            });
-            break;
-          }
-        }
+        await consumeStreamIntoLastAssistantMessage(response, messagesRef, setMessages, {
+          onConversationId: options.onConversationId,
+          onFinish: options.onFinish,
+        });
       } catch (err) {
         if (err instanceof Error && err.name !== 'AbortError') {
           setError(err);
@@ -166,7 +181,7 @@ export function useChat(options: UseChatOptions = {}): UseChatReturn {
         setIsLoading(false);
       }
     },
-    [api, user, setAuth, openLoginModal, appendMessage, options]
+    [api, appendMessage, options]
   );
 
   /** Shared core: append user message and start stream. Does not touch input state. */
@@ -213,6 +228,66 @@ export function useChat(options: UseChatOptions = {}): UseChatReturn {
     [submitCore]
   );
 
+  /** Submit user answer to askUserQuestion tool and continue (no user message appended; streams into last assistant message). */
+  const submitToolAnswer = useCallback(
+    async (toolCallId: string, answer: string) => {
+      const trimmed = (answer ?? '').trim();
+      if (submittingRef.current || !trimmed) return;
+
+      const body: Record<string, unknown> = {
+        ...(options.body as Record<string, unknown>),
+        toolCallId,
+        answer: trimmed,
+      };
+      const conversationId = body.conversationId as number | undefined;
+      if (conversationId == null) {
+        setError(new Error('conversationId is required for submit-tool-answer'));
+        return;
+      }
+
+      submittingRef.current = true;
+      setIsLoading(true);
+      setError(undefined);
+      abortControllerRef.current = new AbortController();
+
+      try {
+        const response = await fetchWithAuthRetry(
+          '/api/chat/submit-tool-answer',
+          body,
+          abortControllerRef.current.signal
+        );
+
+        if (!response.ok) {
+          const err = new Error(`Submit tool answer failed: ${response.status} ${response.statusText}`);
+          setError(err);
+          options.onError?.(err);
+          return;
+        }
+
+        const lastMessage = messagesRef.current[messagesRef.current.length - 1];
+        if (lastMessage?.role !== MessageRole.ASSISTANT) {
+          setIsLoading(false);
+          submittingRef.current = false;
+          return;
+        }
+
+        await consumeStreamIntoLastAssistantMessage(response, messagesRef, setMessages, {
+          onConversationId: options.onConversationId,
+          onFinish: options.onFinish,
+        }, lastMessage.content ?? '', lastMessage.blocks);
+      } catch (err) {
+        if (err instanceof Error && err.name !== 'AbortError') {
+          setError(err);
+          options.onError?.(err);
+        }
+      } finally {
+        submittingRef.current = false;
+        setIsLoading(false);
+      }
+    },
+    [options.body, options.onConversationId, options.onFinish, options.onError]
+  );
+
   const stop = useCallback(() => {
     abortControllerRef.current?.abort();
     submittingRef.current = false;
@@ -242,6 +317,7 @@ export function useChat(options: UseChatOptions = {}): UseChatReturn {
     handleInputChange,
     handleSubmit,
     submitMessage,
+    submitToolAnswer,
     isLoading,
     stop,
     reload,
