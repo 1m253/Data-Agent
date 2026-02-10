@@ -4,6 +4,7 @@ import dev.langchain4j.agent.tool.P;
 import dev.langchain4j.agent.tool.Tool;
 import dev.langchain4j.invocation.InvocationParameters;
 import edu.zsc.ai.common.constant.RequestContextConstant;
+import edu.zsc.ai.common.constant.ToolMessageConstants;
 import edu.zsc.ai.domain.model.dto.response.db.ConnectionResponse;
 import edu.zsc.ai.domain.service.db.DbConnectionService;
 import lombok.RequiredArgsConstructor;
@@ -24,21 +25,22 @@ public class ConnectionTool {
         "Use when the user asks for their connections, wants to switch connection, or needs to see available connections."
     })
     public String getMyConnections(InvocationParameters parameters) {
-        log.info("[Tool before] getMyConnections");
+        log.info("{} getMyConnections", ToolMessageConstants.TOOL_LOG_PREFIX_BEFORE);
         try {
             Long userId = parameters.get(RequestContextConstant.USER_ID);
             if (userId == null) {
-                return "User context missing.";
+                return ToolMessageConstants.USER_CONTEXT_MISSING;
             }
             List<ConnectionResponse> connections = dbConnectionService.getAllConnections(userId);
             if (connections == null || connections.isEmpty()) {
-                log.info("[Tool done] getMyConnections -> EMPTY: No connections found.");
-                return "EMPTY: No connections found.";
+                log.info("{} getMyConnections -> {}", ToolMessageConstants.TOOL_LOG_PREFIX_DONE,
+                        ToolMessageConstants.EMPTY_NO_CONNECTIONS);
+                return ToolMessageConstants.EMPTY_NO_CONNECTIONS;
             }
-            log.info("[Tool done] getMyConnections, result size={}", connections.size());
+            log.info("{} getMyConnections, result size={}", ToolMessageConstants.TOOL_LOG_PREFIX_DONE, connections.size());
             return edu.zsc.ai.util.JsonUtil.object2json(connections);
         } catch (Exception e) {
-            log.error("[Tool error] getMyConnections", e);
+            log.error("{} getMyConnections", ToolMessageConstants.TOOL_LOG_PREFIX_ERROR, e);
             return e.getMessage();
         }
     }
@@ -50,17 +52,17 @@ public class ConnectionTool {
     public String getConnectionById(
             @P("The connection id (from session context or getMyConnections result)") Long connectionId,
             InvocationParameters parameters) {
-        log.info("[Tool before] getConnectionById, connectionId={}", connectionId);
+        log.info("{} getConnectionById, connectionId={}", ToolMessageConstants.TOOL_LOG_PREFIX_BEFORE, connectionId);
         try {
             Long userId = parameters.get(RequestContextConstant.USER_ID);
             if (userId == null) {
-                return "User context missing.";
+                return ToolMessageConstants.USER_CONTEXT_MISSING;
             }
             ConnectionResponse connection = dbConnectionService.getConnectionById(connectionId, userId);
-            log.info("[Tool done] getConnectionById, connectionId={}", connectionId);
+            log.info("{} getConnectionById, connectionId={}", ToolMessageConstants.TOOL_LOG_PREFIX_DONE, connectionId);
             return edu.zsc.ai.util.JsonUtil.object2json(connection);
         } catch (Exception e) {
-            log.error("[Tool error] getConnectionById, connectionId={}", connectionId, e);
+            log.error("{} getConnectionById, connectionId={}", ToolMessageConstants.TOOL_LOG_PREFIX_ERROR, connectionId, e);
             return e.getMessage();
         }
     }

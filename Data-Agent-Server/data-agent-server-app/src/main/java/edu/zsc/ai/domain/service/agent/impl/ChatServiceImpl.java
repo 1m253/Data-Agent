@@ -8,6 +8,7 @@ import dev.langchain4j.service.TokenStream;
 import dev.langchain4j.store.memory.chat.ChatMemoryStore;
 import edu.zsc.ai.agent.ReActAgent;
 import edu.zsc.ai.agent.ReActAgentProvider;
+import edu.zsc.ai.common.constant.ChatErrorConstants;
 import edu.zsc.ai.common.constant.HitlConstants;
 import edu.zsc.ai.common.enums.ai.ModelEnum;
 import edu.zsc.ai.context.RequestContext;
@@ -42,12 +43,7 @@ public class ChatServiceImpl implements ChatService {
 
     @Override
     public Flux<ChatResponseBlock> chat(ChatRequest request) {
-        String modelName = StringUtils.isNotBlank(request.getModel()) ? request.getModel().trim() : DEFAULT_MODEL;
-        try {
-            ModelEnum.fromModelName(modelName);
-        } catch (IllegalArgumentException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unknown model: " + modelName, e);
-        }
+        String modelName = validateAndResolveModel(request.getModel());
 
         ReActAgent agent = reActAgentProvider.getAgent(modelName);
 
@@ -69,17 +65,10 @@ public class ChatServiceImpl implements ChatService {
 
     @Override
     public Flux<ChatResponseBlock> submitToolAnswerAndContinue(SubmitToolAnswerRequest request) {
-        String modelName = StringUtils.isNotBlank(request.getModel())
-                ? request.getModel().trim()
-                : DEFAULT_MODEL;
-        try {
-            ModelEnum.fromModelName(modelName);
-        } catch (IllegalArgumentException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unknown model: " + modelName, e);
-        }
+        String modelName = validateAndResolveModel(request.getModel());
 
         if (request.getConversationId() == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "conversationId is required");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, ChatErrorConstants.CONVERSATION_ID_REQUIRED);
         }
 
         ReActAgent agent = reActAgentProvider.getAgent(modelName);
@@ -89,7 +78,7 @@ public class ChatServiceImpl implements ChatService {
 
         List<ChatMessage> messages = chatMemoryStore.getMessages(memoryId);
         if (messages == null || messages.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No messages for this conversation");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, ChatErrorConstants.NO_MESSAGES_FOR_CONVERSATION);
         }
 
         String toolCallId = request.getToolCallId();
@@ -113,7 +102,7 @@ public class ChatServiceImpl implements ChatService {
 
         if (!replaced) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    "No matching askUserQuestion tool result for id: " + toolCallId);
+                    ChatErrorConstants.NO_MATCHING_ASK_USER_TOOL_RESULT_PREFIX + toolCallId);
         }
 
         chatMemoryStore.updateMessages(memoryId, newMessages);
@@ -171,5 +160,20 @@ public class ChatServiceImpl implements ChatService {
         });
 
         tokenStream.start();
+    }
+
+    /**
+     * Resolves request model to a valid model name, or DEFAULT_MODEL if blank.
+     * Throws ResponseStatusException if the model is not supported.
+     */
+    private String validateAndResolveModel(String requestModel) {
+        String modelName = StringUtils.isNotBlank(requestModel) ? requestModel.trim() : DEFAULT_MODEL;
+        try {
+            ModelEnum.fromModelName(modelName);
+        } catch (IllegalArgumentException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    ChatErrorConstants.UNKNOWN_MODEL_PREFIX + modelName, e);
+        }
+        return modelName;
     }
 }
