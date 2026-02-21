@@ -1,30 +1,30 @@
 import http from '../lib/http';
 import { ApiPaths } from '../constants/apiPaths';
 
-export const tableService = {
-  listTables: async (connectionId: string, catalog?: string, schema?: string): Promise<string[]> => {
+export const viewService = {
+  listViews: async (connectionId: string, catalog?: string, schema?: string): Promise<string[]> => {
     const params: Record<string, string> = { connectionId };
     if (catalog != null && catalog !== '') params.catalog = catalog;
     if (schema != null && schema !== '') params.schema = schema;
-    
-    const response = await http.get<string[]>(ApiPaths.TABLES, { params });
+
+    const response = await http.get<string[]>(ApiPaths.VIEWS, { params });
     return response.data;
   },
 
-  getTableDdl: async (
+  getViewDdl: async (
     connectionId: string,
-    tableName: string,
+    viewName: string,
     catalog?: string,
     schema?: string
   ): Promise<string> => {
-    const params: Record<string, string> = { 
-      connectionId, 
-      tableName 
+    const params: Record<string, string> = {
+      connectionId,
+      viewName,
     };
     if (catalog != null && catalog !== '') params.catalog = catalog;
     if (schema != null && schema !== '') params.schema = schema;
-    
-    const response = await http.get<string>(ApiPaths.TABLES_DDL, { params });
+
+    const response = await http.get<string>(ApiPaths.VIEWS_DDL, { params });
     return response.data;
   },
 };
