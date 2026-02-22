@@ -9,8 +9,6 @@ spring:
     url: jdbc:postgresql://localhost:5432/data_agent
     username: postgres
     password: postgres
-  profiles:
-    active: local
 
 # MyBatis-Plus configuration
 mybatis-plus:
@@ -84,12 +82,3 @@ mcp:
       timeoutSeconds: 60
       debug: false
     
-    # 完整配置示例（高级）- 指定完整命令和参数
-    # custom-server:
-    #   command: npx
-    #   args: ["@custom/mcp-server@1.0.0", "--option", "value"]
-    #   env:
-    #     API_KEY: ${CUSTOM_API_KEY}
-    #   enabled: true
-    #   timeoutSeconds: 60
-    #   debug: false
