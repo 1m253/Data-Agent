@@ -225,7 +225,13 @@
     "delete_folder_failed": "删除文件夹下的对象失败",
     "delete_database": "删除数据库",
     "delete_database_confirm": "确定要删除数据库 \"{{name}}\" 吗？此操作不可恢复。",
-    "delete_database_failed": "删除数据库失败"
+    "delete_database_failed": "删除数据库失败",
+    "export_database": "导出数据库",
+    "export_database_failed": "导出数据库失败",
+    "export_database_success": "导出数据库成功",
+    "import_database": "导入数据库",
+    "import_database_success": "导入数据库成功",
+    "import_database_failed": "导入数据库失败"
   },
   "connections": {
     "new": "新建连接",

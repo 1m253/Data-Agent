@@ -26,6 +26,8 @@ import edu.zsc.ai.plugin.model.metadata.TriggerMetadata;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.Statement;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -692,5 +694,290 @@ public abstract class DefaultMysqlPlugin extends AbstractDatabasePlugin
             result.put(e.getKey(), params);
         }
         return result;
+    }
+
+    @Override
+    public String exportDatabaseDdl(Connection connection, String databaseName) {
+        if (connection == null || databaseName == null || databaseName.isEmpty()) {
+            throw new IllegalArgumentException("Connection and database name must not be null or empty");
+        }
+
+        StringBuilder sb = new StringBuilder();
+
+        // Export database creation
+        String dbSql = String.format(MysqlSqlConstants.SQL_SHOW_CREATE_DATABASE, databaseName);
+        try (ResultSet rs = connection.prepareStatement(dbSql).executeQuery()) {
+            if (rs.next()) {
+                sb.append(rs.getString(2)).append(";\n\n");
+            }
+        } catch (SQLException e) {
+            logger.warning("Failed to export database DDL: " + e.getMessage());
+        }
+
+        sb.append("USE `").append(databaseName.replace("`", "``")).append("`;\n\n");
+
+        // Export all tables DDL (direct JDBC query)
+        String tablesSql = "SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA = '" + databaseName + "' AND TABLE_TYPE = 'BASE TABLE'";
+        try (ResultSet rs = connection.prepareStatement(tablesSql).executeQuery()) {
+            while (rs.next()) {
+                String tableName = rs.getString("TABLE_NAME");
+                String tableSql = "SHOW CREATE TABLE `" + tableName + "`";
+                try (ResultSet rs2 = connection.prepareStatement(tableSql).executeQuery()) {
+                    if (rs2.next()) {
+                        sb.append("DROP TABLE IF EXISTS `").append(tableName).append("`;\n");
+                        sb.append(rs2.getString(2)).append(";\n\n");
+                    }
+                }
+            }
+        } catch (Exception e) {
+            logger.warning("Failed to export tables: " + e.getMessage());
+        }
+
+        // Export all table data
+        String tableDataSql = "SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA = '" + databaseName + "' AND TABLE_TYPE = 'BASE TABLE'";
+        try (ResultSet rs = connection.prepareStatement(tableDataSql).executeQuery()) {
+            while (rs.next()) {
+                String tableName = rs.getString("TABLE_NAME");
+                sb.append("-- Data for table ").append(tableName).append("\n");
+                exportTableData(connection, tableName, sb);
+                sb.append("\n");
+            }
+        } catch (Exception e) {
+            logger.warning("Failed to export table data: " + e.getMessage());
+        }
+
+        // Export all views (direct JDBC query)
+        String viewsSql = "SELECT TABLE_NAME FROM information_schema.VIEWS WHERE TABLE_SCHEMA = '" + databaseName + "'";
+        try (ResultSet rs = connection.prepareStatement(viewsSql).executeQuery()) {
+            while (rs.next()) {
+                String viewName = rs.getString("TABLE_NAME");
+                String viewSql = "SHOW CREATE VIEW `" + viewName + "`";
+                try (ResultSet rs2 = connection.prepareStatement(viewSql).executeQuery()) {
+                    if (rs2.next()) {
+                        sb.append("-- ----------------------------\n");
+                        sb.append("-- View structure for ").append(viewName).append("\n");
+                        sb.append("-- ----------------------------\n");
+                        sb.append("DROP VIEW IF EXISTS `").append(viewName).append("`;\n");
+                        sb.append(rs2.getString(2)).append(";\n\n");
+                    }
+                }
+            }
+        } catch (Exception e) {
+            logger.warning("Failed to export views: " + e.getMessage());
+        }
+
+        // Export all triggers (direct JDBC query)
+        String triggerSql = "SELECT TRIGGER_NAME, EVENT_OBJECT_TABLE FROM information_schema.TRIGGERS WHERE TRIGGER_SCHEMA = '" + databaseName + "'";
+        try (ResultSet rs = connection.prepareStatement(triggerSql).executeQuery()) {
+            while (rs.next()) {
+                String triggerName = rs.getString("TRIGGER_NAME");
+                String tableName = rs.getString("EVENT_OBJECT_TABLE");
+                String showSql = "SHOW CREATE TRIGGER `" + triggerName + "`";
+                try (ResultSet rs2 = connection.prepareStatement(showSql).executeQuery()) {
+                    if (rs2.next()) {
+                        sb.append("-- ----------------------------\n");
+                        sb.append("-- Triggers structure for table ").append(tableName).append("\n");
+                        sb.append("-- ----------------------------\n");
+                        sb.append("DROP TRIGGER IF EXISTS `").append(triggerName).append("`;\n");
+                        sb.append(rs2.getString("SQL Original Statement"));
+                        sb.append(";\n\n");
+                    }
+                }
+            }
+        } catch (Exception e) {
+            logger.warning("Failed to export triggers: " + e.getMessage());
+        }
+
+        // Export all functions (direct JDBC query)
+        String funcSql = "SELECT ROUTINE_NAME FROM information_schema.ROUTINES WHERE ROUTINE_SCHEMA = '" + databaseName + "' AND ROUTINE_TYPE = 'FUNCTION'";
+        try (ResultSet rs = connection.prepareStatement(funcSql).executeQuery()) {
+            while (rs.next()) {
+                String funcName = rs.getString("ROUTINE_NAME");
+                String showSql = "SHOW CREATE FUNCTION `" + funcName + "`";
+                try (ResultSet rs2 = connection.prepareStatement(showSql).executeQuery()) {
+                    if (rs2.next()) {
+                        sb.append("-- ----------------------------\n");
+                        sb.append("-- Function structure for ").append(funcName).append("\n");
+                        sb.append("-- ----------------------------\n");
+                        sb.append("DROP FUNCTION IF EXISTS `").append(funcName).append("`;\n");
+                        sb.append(rs2.getString("Create Function"));
+                        sb.append(";\n\n");
+                    }
+                }
+            }
+        } catch (Exception e) {
+            logger.warning("Failed to export functions: " + e.getMessage());
+        }
+
+        // Export all procedures (direct JDBC query)
+        String procSql = "SELECT ROUTINE_NAME FROM information_schema.ROUTINES WHERE ROUTINE_SCHEMA = '" + databaseName + "' AND ROUTINE_TYPE = 'PROCEDURE'";
+        try (ResultSet rs = connection.prepareStatement(procSql).executeQuery()) {
+            while (rs.next()) {
+                String procName = rs.getString("ROUTINE_NAME");
+                String showSql = "SHOW CREATE PROCEDURE `" + procName + "`";
+                try (ResultSet rs2 = connection.prepareStatement(showSql).executeQuery()) {
+                    if (rs2.next()) {
+                        sb.append("-- ----------------------------\n");
+                        sb.append("-- Procedure structure for ").append(procName).append("\n");
+                        sb.append("-- ----------------------------\n");
+                        sb.append("DROP PROCEDURE IF EXISTS `").append(procName).append("`;\n");
+                        sb.append(rs2.getString("Create Procedure"));
+                        sb.append(";\n\n");
+                    }
+                }
+            }
+        } catch (Exception e) {
+            logger.warning("Failed to export procedures: " + e.getMessage());
+        }
+
+        return sb.toString();
+    }
+
+    private void exportTableData(Connection connection, String tableName, StringBuilder sb) {
+        String sql = "SELECT * FROM `" + tableName + "`";
+        try (Statement stmt = connection.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+
+            ResultSetMetaData metaData = rs.getMetaData();
+            int columnCount = metaData.getColumnCount();
+
+            while (rs.next()) {
+                StringBuilder values = new StringBuilder();
+                for (int i = 1; i <= columnCount; i++) {
+                    if (i > 1) values.append(", ");
+
+                    Object value = rs.getObject(i);
+                    if (value == null) {
+                        values.append("NULL");
+                    } else if (value instanceof Boolean) {
+                        // Convert Boolean to 0/1 for MySQL tinyint(1)
+                        values.append(((Boolean) value) ? 1 : 0);
+                    } else if (value instanceof Number) {
+                        values.append(value.toString());
+                    } else if (value instanceof java.util.Date) {
+                        values.append("'").append(value.toString()).append("'");
+                    } else {
+                        // Escape single quotes and backslashes
+                        String str = value.toString().replace("\\", "\\\\").replace("'", "\\'");
+                        values.append("'").append(str).append("'");
+                    }
+                }
+
+                sb.append("INSERT INTO `").append(tableName).append("` VALUES (").append(values).append(");\n");
+            }
+        } catch (SQLException e) {
+            logger.warning("Failed to export data for table " + tableName + ": " + e.getMessage());
+        }
+    }
+
+    @Override
+    public List<String> exportAllTableDdls(Connection connection, String databaseName) {
+        if (connection == null || databaseName == null || databaseName.isEmpty()) {
+            throw new IllegalArgumentException("Connection and database name must not be null or empty");
+        }
+
+        List<String> ddlList = new ArrayList<>();
+        List<String> tables = getTableNames(connection, databaseName, null);
+
+        for (String tableName : tables) {
+            String sql = String.format(MysqlSqlConstants.SQL_SHOW_CREATE_TABLE, tableName);
+            try (ResultSet rs = connection.prepareStatement(sql).executeQuery()) {
+                if (rs.next()) {
+                    ddlList.add(rs.getString(2));
+                }
+            } catch (SQLException e) {
+                logger.warning("Failed to export DDL for table " + tableName + ": " + e.getMessage());
+            }
+        }
+
+        return ddlList;
+    }
+
+    @Override
+    public void executeSqlScript(Connection connection, String sqlScript) {
+        if (connection == null || sqlScript == null || sqlScript.isEmpty()) {
+            throw new IllegalArgumentException("Connection and SQL script must not be null or empty");
+        }
+
+        try (Statement stmt = connection.createStatement()) {
+            // Split by semicolon, but only when not inside quotes
+            List<String> statements = new ArrayList<>();
+            StringBuilder current = new StringBuilder();
+            boolean inSingleQuote = false;
+            boolean inDoubleQuote = false;
+            boolean inBacktick = false;
+
+            for (int i = 0; i < sqlScript.length(); i++) {
+                char c = sqlScript.charAt(i);
+
+                // Handle escape character
+                if (c == '\\' && i + 1 < sqlScript.length()) {
+                    current.append(c);
+                    current.append(sqlScript.charAt(++i));
+                    continue;
+                }
+
+                // Handle quote toggles
+                if (c == '\'' && !inDoubleQuote && !inBacktick) {
+                    inSingleQuote = !inSingleQuote;
+                } else if (c == '"' && !inSingleQuote && !inBacktick) {
+                    inDoubleQuote = !inDoubleQuote;
+                } else if (c == '`' && !inSingleQuote && !inDoubleQuote) {
+                    inBacktick = !inBacktick;
+                }
+
+                // Split on semicolon when not inside any quote
+                if (c == ';' && !inSingleQuote && !inDoubleQuote && !inBacktick) {
+                    String trimmed = current.toString().trim();
+                    // Remove comments
+                    trimmed = removeComments(trimmed);
+                    if (!trimmed.isEmpty()) {
+                        statements.add(trimmed);
+                    }
+                    current = new StringBuilder();
+                } else {
+                    current.append(c);
+                }
+            }
+
+            // Add remaining statement
+            String trimmed = current.toString().trim();
+            trimmed = removeComments(trimmed);
+            if (!trimmed.isEmpty()) {
+                statements.add(trimmed);
+            }
+
+            // Execute each statement
+            for (String sql : statements) {
+                if (!sql.isEmpty()) {
+                    // Add IF NOT EXISTS to avoid errors for existing databases/tables
+                    String modifiedSql = sql;
+                    if (sql.toUpperCase().startsWith("CREATE DATABASE")) {
+                        modifiedSql = sql.replaceFirst("CREATE DATABASE", "CREATE DATABASE IF NOT EXISTS");
+                    } else if (sql.toUpperCase().startsWith("CREATE TABLE")) {
+                        modifiedSql = sql.replaceFirst("CREATE TABLE", "CREATE TABLE IF NOT EXISTS");
+                    }
+                    try {
+                        stmt.execute(modifiedSql);
+                    } catch (SQLException e) {
+                        // Log but continue with next statement
+                        logger.warning("Failed to execute SQL: " + modifiedSql + " - " + e.getMessage());
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to execute SQL script: " + e.getMessage(), e);
+        }
+    }
+
+    private String removeComments(String sql) {
+        if (sql == null || sql.isEmpty()) {
+            return sql;
+        }
+        // Remove single-line comments (-- ...)
+        sql = sql.replaceAll("--[^\\n]*", "");
+        // Remove multi-line comments (/* ... */)
+        sql = sql.replaceAll("/\\*[\\s\\S]*?\\*/", "");
+        return sql.trim();
     }
 }

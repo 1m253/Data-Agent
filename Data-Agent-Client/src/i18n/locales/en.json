@@ -225,7 +225,13 @@
     "delete_folder_failed": "Failed to delete objects in folder",
     "delete_database": "Delete database",
     "delete_database_confirm": "Are you sure you want to delete database \"{{name}}\"? This action cannot be undone.",
-    "delete_database_failed": "Failed to delete database"
+    "delete_database_failed": "Failed to delete database",
+    "export_database": "Export database",
+    "export_database_failed": "Failed to export database",
+    "export_database_success": "Database exported successfully",
+    "import_database": "Import database",
+    "import_database_success": "Database imported successfully",
+    "import_database_failed": "Failed to import database"
   },
   "connections": {
     "new": "New connection",

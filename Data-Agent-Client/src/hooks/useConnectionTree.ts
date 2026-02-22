@@ -218,5 +218,6 @@ export function useConnectionTree() {
     isConnectionsLoading,
     refetchConnections,
     deleteMutation,
+    queryClient,
   };
 }

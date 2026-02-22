@@ -55,4 +55,34 @@ public interface DatabaseProvider {
 
         log.info("Database deleted successfully: databaseName={}", databaseName);
     }
+
+    /**
+     * Export database DDL (CREATE DATABASE statement)
+     * @param connection database connection
+     * @param databaseName database name
+     * @return CREATE DATABASE statement
+     */
+    default String exportDatabaseDdl(Connection connection, String databaseName) {
+        throw new UnsupportedOperationException("Plugin does not support exporting database DDL");
+    }
+
+    /**
+     * Export all table DDLs in a database
+     * @param connection database connection
+     * @param databaseName database name
+     * @return list of CREATE TABLE statements
+     */
+    default List<String> exportAllTableDdls(Connection connection, String databaseName) {
+        throw new UnsupportedOperationException("Plugin does not support exporting table DDLs");
+    }
+
+    /**
+     * Execute SQL script for import
+     * @param connection database connection
+     * @param sqlScript SQL script to execute
+     * @return success or not
+     */
+    default void executeSqlScript(Connection connection, String sqlScript) {
+        throw new UnsupportedOperationException("Plugin does not support executing SQL script");
+    }
 }

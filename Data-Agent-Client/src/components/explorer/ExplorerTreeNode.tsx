@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { ChevronRight, ChevronDown, RefreshCw, MoreVertical, Pencil, Trash2, Plug, FileText, Table } from 'lucide-react';
+import { ChevronRight, ChevronDown, RefreshCw, MoreVertical, Pencil, Trash2, Plug, FileText, Table, Download, Upload } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { useTranslation } from 'react-i18next';
 import { NodeApi } from 'react-arborist';
@@ -38,6 +38,8 @@ export interface ExplorerTreeNodeProps {
   onDeleteTrigger: (node: ExplorerNode) => void;
   onDeleteAllInFolder: (node: ExplorerNode) => void;
   onDeleteDatabase: (node: ExplorerNode) => void;
+  onExportDatabase: (node: ExplorerNode) => void;
+  onImportDatabase: (node: ExplorerNode) => void;
 }
 
 export function ExplorerTreeNode({
@@ -58,6 +60,8 @@ export function ExplorerTreeNode({
   onDeleteTrigger,
   onDeleteAllInFolder,
   onDeleteDatabase,
+  onExportDatabase,
+  onImportDatabase,
 }: ExplorerTreeNodeProps) {
   const { t } = useTranslation();
   const isConnected = !!node.data.connectionId;
@@ -261,10 +265,20 @@ export function ExplorerTreeNode({
             </ContextMenuItem>
           )}
           {isDb && (
-            <ContextMenuItem onSelect={() => onDeleteDatabase(node.data)} className="text-destructive focus:text-destructive">
-              <Trash2 className="w-3.5 h-3.5 mr-2" />
-              {t('explorer.delete_database')}
-            </ContextMenuItem>
+            <>
+              <ContextMenuItem onSelect={() => onExportDatabase(node.data)}>
+                <Upload className="w-3.5 h-3.5 mr-2" />
+                {t('explorer.export_database')}
+              </ContextMenuItem>
+              <ContextMenuItem onSelect={() => onImportDatabase(node.data)}>
+                <Download className="w-3.5 h-3.5 mr-2" />
+                {t('explorer.import_database')}
+              </ContextMenuItem>
+              <ContextMenuItem onSelect={() => onDeleteDatabase(node.data)} className="text-destructive focus:text-destructive">
+                <Trash2 className="w-3.5 h-3.5 mr-2" />
+                {t('explorer.delete_database')}
+              </ContextMenuItem>
+            </>
           )}
           {isDeletableFolder && folderCount != null && folderCount > 0 && (
             <ContextMenuItem onSelect={() => onDeleteAllInFolder(node.data)} className="text-destructive focus:text-destructive">

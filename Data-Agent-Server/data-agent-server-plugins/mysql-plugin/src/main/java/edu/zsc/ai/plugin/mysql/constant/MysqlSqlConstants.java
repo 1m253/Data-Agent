@@ -21,7 +21,7 @@ public final class MysqlSqlConstants {
     public static final String SQL_SHOW_CREATE_TRIGGER = "SHOW CREATE TRIGGER %s";
 
     // --- information_schema.TRIGGERS ---
-    /** %s = escaped schema. Append SQL_TRIGGER_FILTER_BY_TABLE + escapedTable + "'" for table filter. */
+    /** %s = escaped schema. Append SQL_TRIGGER_FILTER_BY_TABLE + escapedTable + "" for table filter. */
     public static final String SQL_LIST_TRIGGERS =
             "SELECT " + TRIGGER_NAME + ", " + EVENT_OBJECT_TABLE + ", " + ACTION_TIMING + ", " + EVENT_MANIPULATION
                     + " FROM information_schema.TRIGGERS"
@@ -75,6 +75,11 @@ public final class MysqlSqlConstants {
     /** %1$s = table/view name */
     public static final String SQL_COUNT_TABLE_DATA =
             "SELECT COUNT(*) AS total FROM %s";
+
+    // --- Database Export/Import ---
+    /** %1$s = database name */
+    public static final String SQL_SHOW_CREATE_DATABASE =
+            "SHOW CREATE DATABASE `%s`";
 
     private MysqlSqlConstants() {
     }

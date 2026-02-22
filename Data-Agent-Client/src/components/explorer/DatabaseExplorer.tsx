@@ -31,10 +31,13 @@ import { viewService } from '../../services/view.service';
 import { functionService } from '../../services/function.service';
 import { procedureService } from '../../services/procedure.service';
 import { triggerService } from '../../services/trigger.service';
+import { databaseExportImportService } from '../../services/databaseExportImport.service';
+import { useToast } from '../../hooks/useToast';
 
 export function DatabaseExplorer() {
   const { t } = useTranslation();
   const { supportedDbTypes } = useWorkspaceStore();
+  const toast = useToast();
   const {
     treeDataState,
     setTreeDataState,
@@ -43,6 +46,7 @@ export function DatabaseExplorer() {
     isConnectionsLoading,
     refetchConnections,
     deleteMutation,
+    queryClient,
   } = useConnectionTree();
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -400,22 +404,24 @@ export function DatabaseExplorer() {
         }
       }
 
-      // Remove the folder's children from tree state
+      // Remove the folder node from tree state
       const folderNodeId = deleteFolderNode.id;
       setTreeDataState((prev) => {
-        const removeChildrenFromFolder = (nodes: ExplorerNode[]): ExplorerNode[] => {
-          return nodes.map((node) => {
-            if (node.id === folderNodeId) {
-              return { ...node, children: [] };
-            }
-            if (node.children && node.children.length > 0) {
-              return { ...node, children: removeChildrenFromFolder(node.children) };
-            }
-            return node;
-          });
+        const removeFolder = (nodes: ExplorerNode[]): ExplorerNode[] => {
+          return nodes
+            .filter((node) => node.id !== folderNodeId)
+            .map((node) => {
+              if (node.children && node.children.length > 0) {
+                return { ...node, children: removeFolder(node.children) };
+              }
+              return node;
+            });
         };
-        return removeChildrenFromFolder(prev);
+        return removeFolder(prev);
       });
+
+      // Refresh all queries to update the tree
+      await queryClient.invalidateQueries();
     } catch (error) {
       console.error('Failed to delete folder items:', error);
       alert(t('explorer.delete_folder_failed'));
@@ -429,6 +435,52 @@ export function DatabaseExplorer() {
     if (!node.connectionId) return;
     setDeleteDatabaseNode(node);
     setDeleteDatabaseDialogOpen(true);
+  };
+
+  const handleExportDatabase = async (node: ExplorerNode) => {
+    if (!node.connectionId) return;
+    try {
+      const ddl = await databaseExportImportService.exportDatabase(
+        String(node.connectionId),
+        node.name
+      );
+      // Create and download a .sql file
+      const blob = new Blob([ddl], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${node.name}.sql`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      toast.success(t('explorer.export_database_success'));
+    } catch (error) {
+      console.error('Failed to export database:', error);
+      toast.error(t('explorer.export_database_failed'));
+    }
+  };
+
+  const handleImportDatabase = async (node: ExplorerNode) => {
+    if (!node.connectionId) return;
+    // Create a file input to select SQL file
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.sql,.txt';
+    input.onchange = async (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (!file) return;
+      try {
+        await databaseExportImportService.importFile(String(node.connectionId), file);
+        toast.success(t('explorer.import_database_success'));
+        // Refresh all queries to update the tree
+        await queryClient.invalidateQueries();
+      } catch (error) {
+        console.error('Failed to import database:', error);
+        toast.error(t('explorer.import_database_failed'));
+      }
+    };
+    input.click();
   };
 
   const confirmDeleteDatabase = async () => {
@@ -537,6 +589,8 @@ export function DatabaseExplorer() {
         onDeleteTrigger={handleDeleteTrigger}
         onDeleteAllInFolder={handleDeleteAllInFolder}
         onDeleteDatabase={handleDeleteDatabase}
+        onExportDatabase={handleExportDatabase}
+        onImportDatabase={handleImportDatabase}
       />
     );
   };
