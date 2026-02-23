@@ -23,7 +23,7 @@ mybatis-plus:
   mapper-locations: classpath:mapper/*.xml
 
 sa-token:
-  jwt-secret-key: deepImage-secret-key  
+  jwt-secret-key: DataAgent-secret-key  
   timeout: 1800
   token-name: Authorization
   is-log: true
@@ -71,14 +71,13 @@ langchain4j:
         api-key: ${ALIYUN_AI_API_KEY:}
         model-name: qwen-plus
 
-# MCP (Model Context Protocol) Configuration
 mcp:
-  enabled: true  # Set to false to disable MCP integration
+  enabled: true
   servers:
-    # Simplified configuration example (recommended) - only specify package
     chart-server:
-      packageName: "@modelcontextprotocol/server-everything"
+      packageName: "@antv/mcp-server-chart"
       enabled: true
       timeoutSeconds: 60
       debug: false
-    
+      autoHealthCheck: true
+      healthCheckIntervalSeconds: 60

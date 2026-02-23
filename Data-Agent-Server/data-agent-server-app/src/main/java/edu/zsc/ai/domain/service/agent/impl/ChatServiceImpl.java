@@ -22,6 +22,7 @@ import edu.zsc.ai.model.request.SubmitToolAnswerRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -30,10 +31,10 @@ import reactor.core.publisher.Sinks;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class ChatServiceImpl implements ChatService {
 
     private static final String DEFAULT_MODEL = ModelEnum.QWEN3_MAX.getModelName();
@@ -42,6 +43,20 @@ public class ChatServiceImpl implements ChatService {
     private final AiConversationService aiConversationService;
     private final AiMessageService aiMessageService;
     private final ChatMemoryStore chatMemoryStore;
+    private final Map<String, String> mcpToolNameToServerMap;
+
+    public ChatServiceImpl(
+            ReActAgentProvider reActAgentProvider,
+            AiConversationService aiConversationService,
+            AiMessageService aiMessageService,
+            ChatMemoryStore chatMemoryStore,
+            @Qualifier("mcpToolNameToServerMap") Map<String, String> mcpToolNameToServerMap) {
+        this.reActAgentProvider = reActAgentProvider;
+        this.aiConversationService = aiConversationService;
+        this.aiMessageService = aiMessageService;
+        this.chatMemoryStore = chatMemoryStore;
+        this.mcpToolNameToServerMap = mcpToolNameToServerMap;
+    }
 
     @Override
     public Flux<ChatResponseBlock> chat(ChatRequest request) {
@@ -134,21 +149,30 @@ public class ChatServiceImpl implements ChatService {
         tokenStream.onIntermediateResponse(response -> {
             if (response.aiMessage().hasToolExecutionRequests()) {
                 for (ToolExecutionRequest toolRequest : response.aiMessage().toolExecutionRequests()) {
+                    // Query mapping table for MCP server name
+                    String serverName = mcpToolNameToServerMap.get(toolRequest.name());
+                    log.debug("Tool '{}' mapped to server '{}'", toolRequest.name(), serverName);
+
                     sink.tryEmitNext(ChatResponseBlock.toolCall(
                             toolRequest.id(),
                             toolRequest.name(),
-                            toolRequest.arguments()));
+                            toolRequest.arguments(),
+                            serverName));
                 }
             }
         });
 
         tokenStream.onToolExecuted(toolExecution -> {
             ToolExecutionRequest req = toolExecution.request();
+            // Query mapping table for MCP server name
+            String serverName = mcpToolNameToServerMap.get(req.name());
+
             sink.tryEmitNext(ChatResponseBlock.toolResult(
                     req.id(),
                     req.name(),
                     toolExecution.result(),
-                    toolExecution.hasFailed()));
+                    toolExecution.hasFailed(),
+                    serverName));
         });
 
         tokenStream.onCompleteResponse(response -> {
@@ -166,8 +190,8 @@ public class ChatServiceImpl implements ChatService {
                         aiMessageService.updateLastAiMessageTokenCount(conversationId, outputTokens);
                     }
 
-                    // Add total tokens to conversation (includes input + output)
-                    aiConversationService.addTokenCount(conversationId, totalTokens);
+                    // Update conversation with total tokens (includes input + output)
+                    aiConversationService.updateTokenCount(conversationId, totalTokens);
                 } else {
                     log.debug("No token usage available for conversation {}", conversationId);
                 }

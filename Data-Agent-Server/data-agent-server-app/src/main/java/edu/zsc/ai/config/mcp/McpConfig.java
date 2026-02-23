@@ -1,14 +1,20 @@
 package edu.zsc.ai.config.mcp;
 
+import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import dev.langchain4j.agent.tool.ToolSpecification;
 import dev.langchain4j.mcp.McpToolProvider;
 import dev.langchain4j.mcp.client.DefaultMcpClient;
 import dev.langchain4j.mcp.client.McpClient;
@@ -17,13 +23,10 @@ import dev.langchain4j.mcp.client.transport.stdio.StdioMcpTransport;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-/**
- * MCP configuration with lifecycle management
- * Provides both MCP clients and tool provider in a single configuration class
- */
 @Configuration
 @Slf4j
 @RequiredArgsConstructor
+@EnableConfigurationProperties(McpProperties.class)
 @ConditionalOnProperty(name = "mcp.enabled", havingValue = "true", matchIfMissing = true)
 public class McpConfig implements DisposableBean {
 
@@ -31,47 +34,70 @@ public class McpConfig implements DisposableBean {
 
     private final McpProperties properties;
     private List<McpClient> clients;
+    /** Tool name → MCP server name mapping (e.g., "generate_bar_chart" → "chart-server") */
+    private final Map<String, String> toolNameToServerMap = new ConcurrentHashMap<>();
 
     @Bean
     public List<McpClient> mcpClients() {
-        if (properties.getServers().isEmpty()) {
+        log.info("MCP enabled: {}, servers config: {}", properties.isEnabled(), properties.getServers());
+        if (properties.getServers() == null || properties.getServers().isEmpty()) {
+            log.warn("No MCP servers configured");
             return List.of();
         }
 
         clients = properties.getServers().entrySet().stream()
                 .filter(e -> e.getValue().isEnabled())
-                .map(e -> createClient(e.getKey(), e.getValue()))
+                .map(e -> {
+                    String serverName = e.getKey();
+                    McpClient client = createClient(serverName, e.getValue());
+
+                    // Build tool name → server name mapping
+                    if (client instanceof DefaultMcpClient defaultClient) {
+                        try {
+                            List<ToolSpecification> tools = defaultClient.listTools();
+                            tools.forEach(tool -> {
+                                toolNameToServerMap.put(tool.name(), serverName);
+                                log.debug("Mapped tool '{}' to server '{}'", tool.name(), serverName);
+                            });
+                            log.info("MCP client '{}' provides {} tools", serverName, tools.size());
+                        } catch (Exception ex) {
+                            log.warn("Failed to list tools for mapping from server '{}': {}",
+                                    serverName, ex.getMessage());
+                        }
+                    }
+                    return client;
+                })
                 .filter(Objects::nonNull)
                 .toList();
 
-        log.info("Initialized {} MCP client(s)", clients.size());
+        log.info("Initialized {} MCP client(s), mapped {} tools", clients.size(), toolNameToServerMap.size());
         return clients;
+    }
+
+    /**
+     * Exposes tool name → MCP server name mapping as a Bean for ChatService.
+     *
+     * @return Unmodifiable map of tool names to server names
+     */
+    @Bean("mcpToolNameToServerMap")
+    public Map<String, String> mcpToolNameToServerMap() {
+        return Collections.unmodifiableMap(toolNameToServerMap);
     }
 
     @Bean("mcpToolProvider")
     public McpToolProvider mcpToolProvider(List<McpClient> mcpClients) {
         if (mcpClients == null || mcpClients.isEmpty()) {
             log.warn("No MCP clients available, returning empty McpToolProvider");
-            return McpToolProvider.builder().build();
+            return McpToolProvider.builder()
+                    .mcpClients(List.of())
+                    .build();
         }
 
         log.info("Creating MCP tool provider from {} clients", mcpClients.size());
-        
-        // Log tool count for each client (non-blocking, for monitoring)
-        mcpClients.forEach(client -> {
-            if (client instanceof DefaultMcpClient defaultClient) {
-                try {
-                    int toolCount = defaultClient.listTools().size();
-                    log.info("MCP client '{}' provides {} tools", defaultClient.key(), toolCount);
-                } catch (Exception e) {
-                    log.warn("Failed to list tools for MCP client '{}': {}", 
-                            defaultClient.key(), e.getMessage());
-                }
-            }
-        });
-        
+
         return McpToolProvider.builder()
                 .mcpClients(mcpClients)
+                .failIfOneServerFails(false)
                 .build();
     }
 
@@ -101,11 +127,22 @@ public class McpConfig implements DisposableBean {
                     .command(command)
                     .environment(config.getEnv())
                     .build();
-            
-            McpClient client = DefaultMcpClient.builder()
+
+            DefaultMcpClient.Builder clientBuilder = DefaultMcpClient.builder()
                     .transport(transport)
                     .key(name)
-                    .build();
+                    .listener(new McpClientLifecycleListener(name))
+                    .toolExecutionTimeout(Duration.ofSeconds(config.getTimeoutSeconds()));
+
+            // Configure health check if enabled
+            if (config.isAutoHealthCheck()) {
+                clientBuilder.autoHealthCheck(true)
+                        .autoHealthCheckInterval(Duration.ofSeconds(config.getHealthCheckIntervalSeconds()));
+                log.info("Health check enabled for MCP client '{}' (interval: {}s)",
+                        name, config.getHealthCheckIntervalSeconds());
+            }
+
+            McpClient client = clientBuilder.build();
 
             log.info("Successfully created MCP client '{}'", name);
             return client;

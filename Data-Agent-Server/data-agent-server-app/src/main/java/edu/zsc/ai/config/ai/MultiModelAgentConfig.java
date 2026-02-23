@@ -19,7 +19,12 @@ import dev.langchain4j.service.AiServices;
 import edu.zsc.ai.agent.ReActAgent;
 import edu.zsc.ai.agent.ReActAgentProvider;
 import edu.zsc.ai.common.enums.ai.ModelEnum;
-import edu.zsc.ai.config.tool.DatabaseToolProvider;
+import edu.zsc.ai.tool.AskUserQuestionTool;
+import edu.zsc.ai.tool.ConnectionTool;
+import edu.zsc.ai.tool.DatabaseTool;
+import edu.zsc.ai.tool.ExecuteSqlTool;
+import edu.zsc.ai.tool.TableTool;
+import edu.zsc.ai.tool.TodoTool;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -79,13 +84,19 @@ public class MultiModelAgentConfig {
     public ReActAgent reActAgentQwen3Max(
             @Qualifier("streamingChatModelQwen3Max") StreamingChatModel streamingChatModel,
             ChatMemoryProvider chatMemoryProvider,
-            DatabaseToolProvider databaseToolProvider,
+            TodoTool todoTool,
+            TableTool tableTool,
+            AskUserQuestionTool askUserQuestionTool,
+            ConnectionTool connectionTool,
+            DatabaseTool databaseTool,
+            ExecuteSqlTool executeSqlTool,
             @Qualifier("mcpToolProvider") McpToolProvider mcpToolProvider) {
         return AiServices.builder(ReActAgent.class)
                 .streamingChatModel(streamingChatModel)
                 .chatMemoryProvider(chatMemoryProvider)
-                .toolProvider(databaseToolProvider)  // Built-in database tools
-                .toolProvider(mcpToolProvider)        // External MCP tools
+                .tools(todoTool, tableTool, askUserQuestionTool,
+                       connectionTool, databaseTool, executeSqlTool)
+                .toolProvider(mcpToolProvider)  // Use LangChain4j's McpToolProvider
                 .build();
     }
 
@@ -93,13 +104,19 @@ public class MultiModelAgentConfig {
     public ReActAgent reActAgentQwen3MaxThinking(
             @Qualifier("streamingChatModelQwen3MaxThinking") StreamingChatModel streamingChatModel,
             ChatMemoryProvider chatMemoryProvider,
-            DatabaseToolProvider databaseToolProvider,
+            TodoTool todoTool,
+            TableTool tableTool,
+            AskUserQuestionTool askUserQuestionTool,
+            ConnectionTool connectionTool,
+            DatabaseTool databaseTool,
+            ExecuteSqlTool executeSqlTool,
             @Qualifier("mcpToolProvider") McpToolProvider mcpToolProvider) {
         return AiServices.builder(ReActAgent.class)
                 .streamingChatModel(streamingChatModel)
                 .chatMemoryProvider(chatMemoryProvider)
-                .toolProvider(databaseToolProvider)  // Built-in database tools
-                .toolProvider(mcpToolProvider)        // External MCP tools
+                .tools(todoTool, tableTool, askUserQuestionTool,
+                       connectionTool, databaseTool, executeSqlTool)
+                .toolProvider(mcpToolProvider)  // Use LangChain4j's McpToolProvider
                 .build();
     }
 
@@ -107,13 +124,19 @@ public class MultiModelAgentConfig {
     public ReActAgent reActAgentQwenPlus(
             @Qualifier("streamingChatModelQwenPlus") StreamingChatModel streamingChatModel,
             ChatMemoryProvider chatMemoryProvider,
-            DatabaseToolProvider databaseToolProvider,
+            TodoTool todoTool,
+            TableTool tableTool,
+            AskUserQuestionTool askUserQuestionTool,
+            ConnectionTool connectionTool,
+            DatabaseTool databaseTool,
+            ExecuteSqlTool executeSqlTool,
             @Qualifier("mcpToolProvider") McpToolProvider mcpToolProvider) {
         return AiServices.builder(ReActAgent.class)
                 .streamingChatModel(streamingChatModel)
                 .chatMemoryProvider(chatMemoryProvider)
-                .toolProvider(databaseToolProvider)  // Built-in database tools
-                .toolProvider(mcpToolProvider)        // External MCP tools
+                .tools(todoTool, tableTool, askUserQuestionTool,
+                       connectionTool, databaseTool, executeSqlTool)
+                .toolProvider(mcpToolProvider)  // Use LangChain4j's McpToolProvider
                 .build();
     }
 
