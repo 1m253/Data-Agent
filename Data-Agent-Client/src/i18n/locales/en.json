@@ -201,6 +201,29 @@
       "executeSqlPrefix": "Please continue to call the tool to execute the following SQL:",
       "cancelSqlPrefix": "The originally planned SQL is as follows. Do NOT execute this statement:",
       "confirmFailed": "Confirmation request failed. Please try again."
+    },
+    "memoryCandidate": {
+      "title": "Memory Candidate Box",
+      "loading": "Loading candidates...",
+      "empty": "No candidates yet",
+      "loadFailed": "Failed to load candidates",
+      "selectAll": "Select all",
+      "unselectAll": "Unselect all",
+      "commitSelected": "Save selected",
+      "commitSuccess": "Saved to long-term memory",
+      "commitFailed": "Failed to save selected candidates",
+      "add": "Add candidate",
+      "addConfirm": "Create candidate",
+      "addSuccess": "Candidate created",
+      "addFailed": "Failed to create candidate",
+      "delete": "Delete candidate",
+      "deleteSuccess": "Candidate deleted",
+      "deleteFailed": "Failed to delete candidate",
+      "contentPlaceholder": "Candidate content (required)",
+      "reasonPlaceholder": "Reason (optional)",
+      "confidencePlaceholder": "Confidence 0-1 (optional)",
+      "confidenceRange": "Confidence must be between 0 and 1",
+      "confidence": "Confidence:"
     }
   },
   "explorer": {

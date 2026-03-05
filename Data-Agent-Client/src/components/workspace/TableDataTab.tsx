@@ -50,7 +50,7 @@ export function TableDataTab({ tabId, metadata }: TableDataTabProps) {
   const [whereClause, setWhereClause] = useState('');
   const [orderByColumn, setOrderByColumn] = useState<string>('');
   const [orderByDirection, setOrderByDirection] = useState<'asc' | 'desc'>('asc');
-  const orderByRef = useRef({ orderByColumn: '', orderByDirection: 'asc' as const });
+  const orderByRef = useRef({ orderByColumn: '', orderByDirection: 'asc' as 'asc' | 'desc' });
   useEffect(() => {
     orderByRef.current = { orderByColumn, orderByDirection };
   }, [orderByColumn, orderByDirection]);

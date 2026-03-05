@@ -5,6 +5,7 @@ import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.TextContent;
 import dev.langchain4j.data.message.ToolExecutionResultMessage;
 import dev.langchain4j.data.message.UserMessage;
+import edu.zsc.ai.agent.memory.MemoryUtil;
 import edu.zsc.ai.common.enums.ai.MessageRoleEnum;
 import edu.zsc.ai.domain.model.dto.response.ai.ConversationMessageResponse;
 import edu.zsc.ai.domain.model.dto.response.agent.ChatResponseBlock;
@@ -76,10 +77,11 @@ public class StoredMessageToResponseConverter {
         if (CollectionUtils.isEmpty(userMsg.contents())) {
             return "";
         }
-        return userMsg.contents().stream()
+        String content = userMsg.contents().stream()
                 .filter(c -> c instanceof TextContent)
                 .map(c -> ((TextContent) c).text())
                 .collect(Collectors.joining("\n"));
+        return MemoryUtil.stripInjectedWrapper(content);
     }
 
     private List<ChatResponseBlock> aiMessageBlocks(AiMessage aiMsg) {

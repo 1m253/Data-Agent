@@ -5,6 +5,7 @@ import { AIAssistantProvider } from './AIAssistantContext';
 import { ChatInput } from './ChatInput';
 import { AIAssistantHeader } from './AIAssistantHeader';
 import { AIAssistantContent } from './AIAssistantContent';
+import { MemoryCandidateDock } from './MemoryCandidateDock';
 import { useChat } from '../../hooks/useChat';
 import { useMessageQueue } from '../../hooks/useMessageQueue';
 import { useAuthStore } from '../../store/authStore';
@@ -92,6 +93,8 @@ export function AIAssistant() {
   }, [input, isLoading, handleSubmit, setInput, messageQueue.addToQueue]);
 
   const chatMessages = chatMessagesToMessages(messages);
+  const lastMessage = messages[messages.length - 1];
+  const candidateRefreshKey = `${messages.length}:${lastMessage?.blocks?.length ?? 0}`;
 
   const contextValue = {
     input,
@@ -150,6 +153,11 @@ export function AIAssistant() {
           isWaiting={isWaiting}
           queue={messageQueue.queue}
           onRemoveFromQueue={messageQueue.removeFromQueue}
+        />
+
+        <MemoryCandidateDock
+          conversationId={currentConversationId}
+          refreshKey={candidateRefreshKey}
         />
 
         <ChatInput />
