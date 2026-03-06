@@ -5,9 +5,11 @@ import { DeleteConnectionDialog } from './DeleteConnectionDialog';
 import { DeleteEntityDialog } from './DeleteEntityDialog';
 import { DdlViewerDialog } from './DdlViewerDialog';
 import { TableDataDialog } from './TableDataDialog';
+import { CreateTableDialog } from './CreateTableDialog';
 import { ExplorerNodeType } from '../../constants/explorer';
 import { I18N_KEYS } from '../../constants/i18nKeys';
 import type { ExplorerNode } from '../../types/explorer';
+import type { DbConnection } from '../../types/connection';
 
 interface ExplorerDialogsProps {
   // Connection modal
@@ -44,6 +46,14 @@ interface ExplorerDialogsProps {
   onDeleteStateChange: (state: any) => void;
   onConfirmDelete: () => void;
 
+  // Create table dialog
+  createTableDialogOpen: boolean;
+  onCreateTableDialogOpenChange: (open: boolean) => void;
+  setSelectedCreateTableNode: (node: ExplorerNode | null) => void;
+  selectedCreateTableNode: ExplorerNode | null;
+  connections?: DbConnection[];
+  onCreateTableSuccess?: (node: ExplorerNode) => void;
+
   // Callbacks
   onConnectionSuccess: () => void;
 }
@@ -76,6 +86,13 @@ export function ExplorerDialogs({
   deleteState,
   onDeleteStateChange,
   onConfirmDelete,
+
+  createTableDialogOpen,
+  onCreateTableDialogOpenChange,
+  setSelectedCreateTableNode,
+  selectedCreateTableNode,
+  connections,
+  onCreateTableSuccess,
 
   onConnectionSuccess,
 }: ExplorerDialogsProps) {
@@ -142,6 +159,19 @@ export function ExplorerDialogs({
           catalog={selectedTableDataNode.catalog}
           schema={selectedTableDataNode.schema}
           highlightColumn={highlightColumn}
+        />
+      )}
+
+      {selectedCreateTableNode && (
+        <CreateTableDialog
+          open={createTableDialogOpen}
+          onOpenChange={(open) => {
+            onCreateTableDialogOpenChange(open);
+            if (!open) setSelectedCreateTableNode(null);
+          }}
+          node={selectedCreateTableNode}
+          connections={connections}
+          onSuccess={onCreateTableSuccess}
         />
       )}
 
