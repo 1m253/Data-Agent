@@ -64,7 +64,7 @@ public class DatabaseObjectTool {
             if (Objects.isNull(userId)) {
                 return AgentToolResult.noContext();
             }
-            List<String> databases = databaseService.listDatabases(connectionId, userId);
+            List<String> databases = databaseService.getDatabases(connectionId, userId);
             if (CollectionUtils.isEmpty(databases)) {
                 log.info("[Tool done] getCatalogNames -> empty");
                 return AgentToolResult.empty();
