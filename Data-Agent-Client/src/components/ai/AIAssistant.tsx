@@ -102,14 +102,15 @@ export function AIAssistant() {
   }, [input, isLoading, handleSubmit, setInput, messageQueue.addToQueue]);
 
   const chatMessages = chatMessagesToMessages(messages);
-  // Refresh memory candidates only when an assistant response is completed,
-  // instead of on every streaming block append.
+  // Refresh memory candidates only after the full assistant response is done
+  // (isLoading=false). While streaming, freeze the key so intermediate block
+  // completions don't trigger premature fetches.
   const completedAssistantCount = messages.reduce((count, message) => {
     if (message.role !== 'assistant') return count;
     const hasDoneBlock = message.blocks?.some((block) => block.done) ?? false;
     return hasDoneBlock ? count + 1 : count;
   }, 0);
-  const candidateRefreshKey = `${currentConversationId ?? 'none'}:${completedAssistantCount}`;
+  const candidateRefreshKey = `${currentConversationId ?? 'none'}:${isLoading ? 'loading' : completedAssistantCount}`;
 
   const contextValue = {
     input,
