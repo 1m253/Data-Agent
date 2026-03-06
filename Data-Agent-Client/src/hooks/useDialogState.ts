@@ -41,6 +41,10 @@ export function useDialogState() {
     isPending: false,
   });
 
+  // Create table dialog
+  const [createTableDialogOpen, setCreateTableDialogOpen] = useState(false);
+  const [selectedCreateTableNode, setSelectedCreateTableNode] = useState<ExplorerNode | null>(null);
+
   return {
     // Connection modal
     connectionModalOpen,
@@ -79,5 +83,11 @@ export function useDialogState() {
     // Entity delete
     deleteState,
     setDeleteState,
+
+    // Create table
+    createTableDialogOpen,
+    setCreateTableDialogOpen,
+    selectedCreateTableNode,
+    setSelectedCreateTableNode,
   };
 }
