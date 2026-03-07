@@ -8,6 +8,7 @@ import org.antlr.v4.runtime.CommonTokenStream;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -221,5 +222,82 @@ class MySqlAstExtractorTest {
     void testDefaultColumns_IsEmpty() {
         MySqlAstExtractor ext = new MySqlAstExtractor();
         assertTrue(ext.getColumns().isEmpty());
+    }
+
+    // ==================== Alias mapping ====================
+
+    @Test
+    void testAliasMap_BasicAlias() {
+        MySqlAstExtractor ext = extract("SELECT u.name FROM users u");
+        Map<String, String> aliases = ext.getAliasMap();
+        assertEquals("users", aliases.get("u"));
+    }
+
+    @Test
+    void testAliasMap_AsKeyword() {
+        MySqlAstExtractor ext = extract("SELECT u.name FROM users AS u");
+        Map<String, String> aliases = ext.getAliasMap();
+        assertEquals("users", aliases.get("u"));
+    }
+
+    @Test
+    void testAliasMap_JoinAliases() {
+        MySqlAstExtractor ext = extract(
+                "SELECT u.name, o.total FROM users u JOIN orders o ON u.id = o.user_id");
+        Map<String, String> aliases = ext.getAliasMap();
+        assertEquals("users", aliases.get("u"));
+        assertEquals("orders", aliases.get("o"));
+    }
+
+    // ==================== Column-table mapping ====================
+
+    @Test
+    void testColumnTableMap_QualifiedColumn() {
+        MySqlAstExtractor ext = extract("SELECT u.name FROM users u");
+        Map<String, String> ctm = ext.getColumnTableMap();
+        assertEquals("users", ctm.get("name"));
+    }
+
+    @Test
+    void testColumnTableMap_UnqualifiedColumn() {
+        MySqlAstExtractor ext = extract("SELECT name FROM users");
+        Map<String, String> ctm = ext.getColumnTableMap();
+        assertFalse(ctm.containsKey("name"));
+    }
+
+    @Test
+    void testColumnTableMap_ThreePartColumnName() {
+        MySqlAstExtractor ext = extract("SELECT mydb.users.name FROM mydb.users");
+        Map<String, String> ctm = ext.getColumnTableMap();
+        assertEquals("users", ctm.get("name"));
+    }
+
+    @Test
+    void testColumnTableMap_SameColumnDifferentTables() {
+        MySqlAstExtractor ext = extract(
+                "SELECT u.id, o.id FROM users u JOIN orders o ON u.id = o.user_id");
+        Map<String, String> ctm = ext.getColumnTableMap();
+        // last occurrence wins (known limitation); ON clause u.id overwrites SELECT o.id
+        assertEquals("users", ctm.get("id"));
+        assertEquals("orders", ctm.get("user_id"));
+    }
+
+    // ==================== Schema-qualified table names ====================
+
+    @Test
+    void testTables_SchemaQualifiedTableName() {
+        MySqlAstExtractor ext = extract("SELECT * FROM mydb.users");
+        List<String> tables = ext.getTables();
+        assertTrue(tables.contains("users"));
+        assertFalse(tables.contains("mydb.users"));
+    }
+
+    // ==================== Backward compatibility ====================
+
+    @Test
+    void testBackwardCompat_GetColumnsStillReturnsRawText() {
+        MySqlAstExtractor ext = extract("SELECT u.name FROM users u");
+        List<String> columns = ext.getColumns();
+        assertTrue(columns.contains("u.name"));
     }
 }
