@@ -32,7 +32,7 @@ public enum ToolNameEnum {
     GET_INDEXES("getIndexes"),
 
     // ── Thinking ──
-    SEQUENTIAL_THINKING("sequentialThinking"),
+    THINKING("thinking"),
 
     // ── Visualization ──
     RENDER_CHART("renderChart"),

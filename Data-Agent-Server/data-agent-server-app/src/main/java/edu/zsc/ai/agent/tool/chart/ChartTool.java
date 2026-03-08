@@ -26,10 +26,14 @@ import org.apache.commons.lang3.StringUtils;
 public class ChartTool {
 
     @Tool({
-            "[GOAL] Produce frontend-renderable chart payload from query results.",
-            "[WHEN] Use after executeSelectSql result is ready and user explicitly requests visualization or data clearly benefits from it.",
-            "[WHEN_NOT] Do not use when user has not requested visualization and data is simple. Do not call before query data is available. DISABLED in Plan mode — no query data available to visualize.",
-            "[INPUT] chartType + optionJson (valid ECharts JSON) + optional description explaining chart meaning and key insights."
+            "Transforms raw numbers into instant understanding — a well-chosen chart reveals ",
+            "trends, outliers, and patterns that would take minutes to spot in tabular data. ",
+            "Visualization dramatically improves the user experience and data comprehension.",
+            "",
+            "Use after executeSelectSql when data has visual patterns (trends, distributions, ",
+            "comparisons, proportions) or when the user requests it. Supports LINE, BAR, PIE, ",
+            "SCATTER, and AREA charts via ECharts. Include a description explaining key insights ",
+            "to maximize the chart's value."
     })
     public AgentToolResult renderChart(
             @P("Chart type: LINE/BAR/PIE/SCATTER/AREA") String chartType,

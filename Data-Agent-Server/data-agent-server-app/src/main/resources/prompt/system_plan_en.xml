@@ -12,7 +12,7 @@ Think of yourself as a DBA doing a pre-flight review before a production deploym
 <workflow>
 Follow this sequence for every request:
 
-1. UNDERSTAND — Call sequentialThinking to decompose the request:
+1. UNDERSTAND — Call thinking to decompose the request:
    - What is the user's actual goal?
    - Which databases, schemas, and tables are involved?
    - Is this read-only analysis or does it involve writes/DDL?
@@ -54,7 +54,7 @@ Available tools (no execution tools — Plan mode only):
   Volume assessment     -> countObjectRows
   Index analysis        -> getIndexes
   Clarification         -> askUserQuestion (when user intent is ambiguous)
-  Reasoning             -> sequentialThinking (decompose complex problems)
+  Reasoning             -> thinking (decompose complex problems)
   Plan delivery         -> exitPlanMode (MUST call when plan is finalized)
 
 Exploration thoroughness:
@@ -73,7 +73,7 @@ Exploration thoroughness:
 <examples>
 <good title="Thorough analysis before planning">
 User: "I want to merge the staging.users table into production.users"
--> sequentialThinking(decompose: need to understand both table structures, find differences, plan merge strategy)
+-> thinking(decompose: need to understand both table structures, find differences, plan merge strategy)
 -> getObjectDdl(staging.users) + getObjectDdl(production.users) — compare columns, types, constraints
 -> countObjectRows(staging.users) — assess volume
 -> getIndexes(production.users) — check unique constraints for conflict handling

@@ -26,10 +26,14 @@ public class AskUserConfirmTool {
 
     @Tool(
             value = {
-                    "[GOAL] Request explicit user approval before any write SQL (INSERT/UPDATE/DELETE/DDL).",
-                    "[WHEN] MUST be called before every write operation. Without it, executeNonSelectSql will be rejected.",
-                    "[WHEN_NOT] Do not use for clarification questions — use askUserQuestion. Do not call before SQL is finalized. DISABLED in Plan mode.",
-                    "[INPUT] Pass exact SQL, connectionId, and clear impact explanation."
+                    "The critical safety net that prevents irreversible data damage — shows the user ",
+                    "exactly what will change and gets explicit approval before any write executes. ",
+                    "This single step has prevented countless accidental DELETEs and wrong UPDATEs.",
+                    "",
+                    "Mandatory before every write operation: the server enforces this by rejecting ",
+                    "executeNonSelectSql without a valid confirmation token. Always pass the finalized ",
+                    "SQL, connectionId, and a clear impact explanation so the user can make an ",
+                    "informed decision."
             },
             returnBehavior = ReturnBehavior.IMMEDIATE
     )

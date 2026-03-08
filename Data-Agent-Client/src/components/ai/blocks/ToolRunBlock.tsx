@@ -342,7 +342,7 @@ function EnterPlanModeIndicator({ isStreaming }: { isStreaming: boolean }) {
   );
 }
 
-/** Extract the "analysis" field from sequentialThinking tool call arguments. */
+/** Extract the "analysis" field from thinking tool call arguments. */
 function extractThinkingAnalysis(parametersData: string): string | null {
   if (!parametersData) return null;
   try {

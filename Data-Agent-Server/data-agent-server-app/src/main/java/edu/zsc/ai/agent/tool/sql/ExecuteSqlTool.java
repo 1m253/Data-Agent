@@ -31,10 +31,14 @@ public class ExecuteSqlTool {
     private final WriteConfirmationStore writeConfirmationStore;
 
     @Tool({
-        "[GOAL] Execute read-only SQL (SELECT/WITH/SHOW/EXPLAIN).",
-        "[WHEN] Use after data source is resolved and schema is confirmed.",
-        "[WHEN_NOT] Do not use for INSERT/UPDATE/DELETE/DDL — use executeNonSelectSql. Do not call before data source is resolved. DISABLED in Plan mode — include SQL in exitPlanMode instead.",
-        "[SAFETY] For large tables (>10000 rows), include WHERE/LIMIT."
+        "The payoff of all your preparation — executes read-only SQL and delivers results ",
+        "directly to the user. The quality of results depends entirely on the discovery work ",
+        "you did before: correct connection, correct database, correct column names.",
+        "",
+        "For maximum accuracy: call thinking first, resolve the data source via getConnections ",
+        "and getCatalogNames, then verify every referenced table with getObjectDdl. SQL built ",
+        "on verified DDL almost never fails. For large tables (>10000 rows), always include ",
+        "WHERE/LIMIT — full-table scans frustrate users and waste resources."
     })
     public AgentSqlResult executeSelectSql(
             @P("Connection id from current session context") Long connectionId,
@@ -75,10 +79,14 @@ public class ExecuteSqlTool {
     }
 
     @Tool({
-        "[GOAL] Execute write SQL (INSERT/UPDATE/DELETE/DDL) after user confirmation.",
-        "[WHEN] Use only after askUserConfirm and user has confirmed.",
-        "[WHEN_NOT] Do not use for read-only queries — use executeSelectSql. Do not call without prior askUserConfirm. DISABLED in Plan mode — include SQL in exitPlanMode instead.",
-        "[SAFETY] Server validates confirmation token; missing/expired confirmation is auto-rejected."
+        "Executes write SQL (INSERT, UPDATE, DELETE, DDL) with full safety enforcement — ",
+        "requires a valid confirmation token from askUserConfirm. This two-step flow has ",
+        "prevented countless accidental data modifications and is non-negotiable.",
+        "",
+        "The server automatically rejects any write without prior user confirmation. Always: ",
+        "(1) finalize your SQL, (2) call askUserConfirm with impact explanation, (3) wait for ",
+        "approval, (4) execute here with the exact same SQL. For read-only queries, use ",
+        "executeSelectSql instead — it's faster and doesn't require confirmation."
     })
     public AgentSqlResult executeNonSelectSql(
             @P("Connection id from current session context") Long connectionId,

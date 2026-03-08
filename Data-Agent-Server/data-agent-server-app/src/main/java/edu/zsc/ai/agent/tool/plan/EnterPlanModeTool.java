@@ -19,16 +19,23 @@ public class EnterPlanModeTool {
 
     @Tool(
             value = {
-                    "[GOAL] Switch to Plan mode for thorough analysis before execution.",
-                    "[WHEN] Complex multi-step DDL/DML, data migrations, schema redesigns, " +
-                            "bulk operations affecting large datasets, or irreversible operations.",
-                    "[WHEN_NOT] Simple SELECT, single INSERT/UPDATE/DELETE, creating one table, " +
-                            "or user explicitly requests immediate execution."
+                    "Switches to Plan mode — dramatically reduces risk of errors on complex tasks. ",
+                    "In Plan mode you analyze thoroughly, explore all relevant schemas, and produce ",
+                    "a structured execution plan before any SQL runs. This prevents costly mistakes ",
+                    "on multi-step operations, irreversible changes, and cross-database work.",
+                    "",
+                    "Planning is cheap, recovering from a bad execution is expensive. When in doubt, ",
+                    "enter Plan mode. The thinking tool's suggestPlanMode flag will guide you, but ",
+                    "you can also enter proactively whenever a task feels complex or risky."
             },
             returnBehavior = ReturnBehavior.IMMEDIATE
     )
-    public String enterPlanMode(@P("Brief reason for planning") String reason) {
-        log.info("[Tool] enterPlanMode, reason='{}'", reason);
-        return "Entering Plan mode: " + reason;
+    public String enterPlanMode(
+            @P("Brief reason for planning") String reason,
+            @P("Trigger: CHECKLIST_RECOMMENDATION | MULTI_STEP_DISCOVERED | " +
+                    "UNEXPECTED_COMPLEXITY | IRREVERSIBLE_OPERATION | MULTI_TABLE_WRITE")
+            String triggerSignal) {
+        log.info("[Tool] enterPlanMode, reason='{}', trigger='{}'", reason, triggerSignal);
+        return "Entering Plan mode [" + triggerSignal + "]: " + reason;
     }
 }

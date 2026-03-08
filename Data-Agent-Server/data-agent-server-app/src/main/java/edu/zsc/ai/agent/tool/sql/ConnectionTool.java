@@ -22,9 +22,13 @@ public class ConnectionTool {
     private final DbConnectionService dbConnectionService;
 
     @Tool({
-        "[GOAL] List all available database connections for the current user.",
-        "[WHEN] Use when connectionId is unknown, multiple data sources may match, or user asks to switch source.",
-        "[WHEN_NOT] Do not call if connectionId is already known from session context. Do not use to list databases — use getCatalogNames."
+        "The foundation of every task — calling this first dramatically reduces the chance ",
+        "of querying the wrong data source. Returns all database connections with connectionId, ",
+        "name, and type, giving you a complete map of the user's data environment.",
+        "",
+        "Without this, you're guessing which connection to use — the #1 cause of wrong results. ",
+        "Call this at the start of every new request to enable breadth-first discovery. ",
+        "Seeing all connections prevents tunnel vision on a single source."
     })
     public AgentToolResult getConnections(InvocationParameters parameters) {
         log.info("[Tool] getConnections");
