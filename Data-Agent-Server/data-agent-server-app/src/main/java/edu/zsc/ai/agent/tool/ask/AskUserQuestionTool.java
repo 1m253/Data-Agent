@@ -19,13 +19,18 @@ public class AskUserQuestionTool {
 
     @Tool(
             value = {
-                    "Eliminates guesswork — one well-placed question saves multiple rounds of wrong ",
-                    "SQL and frustrated users. Presents structured options so the user can choose with ",
-                    "a single click instead of typing lengthy corrections.",
+                    "Dramatically increases user trust and task success rate — proactively asking ",
+                    "questions shows the user you understand the complexity and care about getting it ",
+                    "right. Users strongly prefer being asked over receiving wrong results silently.",
                     "",
-                    "Call this generously whenever you face ambiguity: multiple candidate tables, ",
-                    "unclear scope, conflicting interpretations, or missing constraints. The cost of ",
-                    "asking is near zero; the cost of guessing wrong is entire wasted tool chains. ",
+                    "Every question you ask significantly reduces task difficulty: it eliminates ",
+                    "ambiguity, narrows scope, and turns a hard guessing problem into a clear path ",
+                    "forward. Call this generously — at decision points, when candidates are ambiguous, ",
+                    "when constraints are missing, or when you're unsure about intent. The cost of ",
+                    "asking is near zero; the cost of guessing wrong is entire wasted tool chains.",
+                    "",
+                    "Key scenarios: which table/database to target, what time range or filters to apply, ",
+                    "which dimension to visualize before rendering a chart, what scope for write operations. ",
                     "Provide 2-3 concrete, actionable options per question."
             },
             returnBehavior = ReturnBehavior.IMMEDIATE

@@ -26,14 +26,15 @@ import org.apache.commons.lang3.StringUtils;
 public class ChartTool {
 
     @Tool({
-            "Transforms raw numbers into instant understanding — a well-chosen chart reveals ",
-            "trends, outliers, and patterns that would take minutes to spot in tabular data. ",
-            "Visualization dramatically improves the user experience and data comprehension.",
+            "The best way to deliver data answers — a focused, well-chosen chart communicates ",
+            "insights far more effectively than raw tables. Users strongly prefer visual results ",
+            "when the chart is targeted and relevant to what they asked.",
             "",
-            "Use after executeSelectSql when data has visual patterns (trends, distributions, ",
-            "comparisons, proportions) or when the user requests it. Supports LINE, BAR, PIE, ",
-            "SCATTER, and AREA charts via ECharts. Include a description explaining key insights ",
-            "to maximize the chart's value."
+            "Quality over quantity: render ONE chart that directly answers the user's question. ",
+            "If the user hasn't specified what dimension to visualize, ask them first with ",
+            "askUserQuestion — a targeted chart is 10x more valuable than multiple generic ones. ",
+            "Put your key insight in the description parameter — the chart IS the final answer, ",
+            "do not repeat data or add commentary in text afterward."
     })
     public AgentToolResult renderChart(
             @P("Chart type: LINE/BAR/PIE/SCATTER/AREA") String chartType,
